@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <script type="text/javascript" src="./lib/three.js"></script>
+    <script type="text/javascript" src="./lib/OrbitControls.js"></script>
+    <script type="text/javascript" src="./lib/MTLLoader.js"></script>
+    <script type="text/javascript" src="./lib/OBJLoader.js"></script>
+    <script type="text/javascript" src="./lib/Stats.js"></script>
+    <script type="text/javascript" src="./lib/DragControls.js"></script>
+    <script type="text/javascript" src="./lib/TransformControls.js"></script>
+
+    <script type="text/javascript">
+      let [width, height] = [1600, 800]
+      var scene = null;
+      var camera = null;
+      var renderer = null;
+      var fov = 45
+      var id = null;
+      var controls;
+      let stats;
+      var mouse;
+      var raycaster;
+      function initGrid() {
+        var helper = new THREE.GridHelper(width / 2, 50);
+        // helper.setColors(0x0000ff, 0x808080);
+        scene.add(helper);
+      }
+      function initLight() {
+        var light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(20, 10, 5);
+        scene.add(light);
+      }
+      function init() {}
+      function initCamea() {
+        //远交相机
+        camera = new THREE.PerspectiveCamera(fov, width / height, 1, 10000);
+        camera.position.set(0, 200, 500);
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+        scene.add(camera);
+      }
+      function draw() {
+        stats.update()
+        renderer.render(scene, camera);
+        requestAnimationFrame(draw);
+      }
+      function initBox({x, y, z}) {
+        var rightCube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshLambertMaterial({color: 0xffff00}));
+        rightCube.position.x = x;
+        rightCube.position.y = y;
+        rightCube.position.z = z;
+        rightCube.params = {
+          id: 12
+        }
+        scene.add(rightCube);
+      }
+      //鼠标
+      function initControls() {
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        //动态阻尼系数 就是鼠标拖拽旋转灵敏度
+        controls.dampingFactor = 1;
+        //是否可以缩放
+        controls.enableZoom = true;
+        //是否自动旋转 controls.autoRotate = true; 设置相机距离原点的最远距离
+        controls.minDistance = 20;
+        //设置相机距离原点的最远距离
+        controls.maxDistance = 600;
+        //是否开启右键拖拽
+        controls.enablePan = true;
+      }
+      //帧数
+      function initStats() {
+        var stats = new Stats()
+        stats.setMode(0)
+        document.getElementById("stats").appendChild(stats.domElement)
+        return stats
+
+      }
+      //拖拽
+      function initDragControls() {
+        var transformControls = new THREE.TransformControls(camera, renderer.domElement);
+
+        scene.add(transformControls);
+
+        // 过滤不是 Mesh 的物体,例如辅助网格对象
+        var objects = [];
+        for (let i = 0; i < scene.children.length; i++) {
+          if (scene.children[i].isMesh) {
+            objects.push(scene.children[i]);
+          }
+        }
+        // 初始化拖拽控件
+        var dragControls = new THREE.DragControls(objects, camera, renderer.domElement);
+
+        // 鼠标略过事件
+        dragControls.addEventListener('hoveron', function (event) {
+          // 让变换控件对象和选中的对象绑定
+          console.log(event.object)
+          transformControls.attach(event.object);
+        });
+
+        // 开始拖拽
+        dragControls.addEventListener('dragstart', function (event) {
+          controls.enabled = false;
+        });
+        // 拖拽结束
+        dragControls.addEventListener('dragend', function (event) {
+          controls.enabled = true;
+        });
+
+      }
+
+      function initClick() {
+        var objects = []
+        var cubeGeometry = new THREE.BoxBufferGeometry(20, 20, 20);
+        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0x00ff80, overdraw: 0.5});
+        var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
+        geometry.rotateX(-Math.PI / 2);
+
+        plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({visible: false}));
+        scene.add(plane);
+
+        objects.push(plane);
+        //点击
+        raycaster = new THREE.Raycaster();
+        mouse = new THREE.Vector2();
+        document.addEventListener('mousedown', onDocumentMouseDown, false);
+        function onDocumentMouseDown(event) {
+          event.preventDefault();
+          mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+          mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+          if (event.button == 2) {
+            raycaster.setFromCamera(mouse, camera);
+            var intersects = raycaster.intersectObjects(objects);
+            var intersect = intersects[0];
+            var voxel = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            voxel.position.copy(intersect.point).add(intersect.face.normal);
+            voxel.position.divideScalar(20).floor().multiplyScalar(20).addScalar(10);
+            scene.add(voxel);
+            objects.push(voxel)
+          } else {
+            var vector2 = new THREE.Vector3(mouse.x, mouse.y,1.0).unproject(camera);//得到那个点了
+            var raycaster2 = new THREE.Raycaster(camera.position, vector2.sub(camera.position).normalize());//起始位置，方向 pos-camerapos
+            var result2 = raycaster2.intersectObjects(scene.children);
+            if (result2.length > 0)
+            {
+              var intersected = result2[0].object;//第一个点到的就作为打中的目标
+              console.log(result2[0].object)
+            }
+
+          }
+        }
+      }
+      function load() {
+        renderer = new THREE.WebGLRenderer({canvas: document.getElementById('mainCanvas')});
+        renderer.setClearColor(0xFFFFFF, 1.0);
+        scene = new THREE.Scene();
+        var axisHelper = new THREE.AxisHelper(10);
+        scene.add(axisHelper);
+        initCamea();
+        initGrid()
+        initLight()
+        initControls()
+        stats = initStats()
+        //点击事件
+        initClick()
+
+        initBox({x: 100, y: 50, z: 0})
+        // initDragControls()
+        draw()
+      }
+    </script>
+  </head>
+
+  <body onload="load()">
+    <canvas id="mainCanvas" width="1600px" height="800px"></canvas>
+    <div id="stats" style="position:absolute;left:0;top:0;"></div>
+  </body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+
+<head>
+    <script type="text/javascript" src="./lib/three.js"></script>
+    <script type="text/javascript" src="./lib/OrbitControls.js"></script>
+    <script type="text/javascript" src="./lib/MTLLoader.js"></script>
+    <script type="text/javascript" src="./lib/OBJLoader.js"></script>
+
+    <script type="text/javascript">
+        var models = {
+            host: {
+                obj: "./obj/host.obj",
+                mtl: "./obj/host.mtl",
+                mesh: null
+            },
+            router: {
+                obj: "./obj/router.obj",
+                mtl: "./obj/router.mtl",
+                mesh: null
+            },
+            detection: {
+                obj: "./obj/detection.obj",
+                mtl: "./obj/detection.mtl",
+                mesh: null
+            },
+            switch: {
+                obj: "./obj/switch.obj",
+                mtl: "./obj/switch.mtl",
+                mesh: null
+            },
+            firewall: {
+                obj: "./obj/firewall.obj",
+                mtl: "./obj/firewall.mtl",
+                mesh: null
+            },
+            firewall: {
+                obj: "./obj/server.obj",
+                mtl: "./obj/server.mtl",
+                mesh: null
+            },
+        };
+        let [width, height] = [1600, 800]
+        var scene = null;
+        var camera = null;
+        var renderer = null;
+        var fov = 45
+        var mesh = null;
+        var id = null;
+        var controls;
+        var raycaster;
+        var plane;
+        var loadingManager = null;
+        function initGrid() {
+            var helper = new THREE.GridHelper(width / 2, 50);
+            // helper.setColors(0x0000ff, 0x808080);
+            scene.add(helper);
+        }
+
+        function initLight() {
+            var light = new THREE.DirectionalLight(0xffffff);
+            light.position.set(0, 0, 0);
+            scene.add(light);
+        }
+
+        function init() {}
+
+        function initCamea() {
+            //远交相机
+            camera = new THREE.PerspectiveCamera(fov, width / height, 1, 10000);
+            camera.position.set(0, 200, 500);
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(camera);
+        }
+
+        function draw() {
+            camera.updateProjectionMatrix();
+            controls.update();
+            renderer.render(scene, camera);
+            requestAnimationFrame(draw);
+        }
+
+        function initBox({
+            x,
+            y,
+            z
+        }) {
+            var rightCube = new THREE.Mesh(new THREE.CubeGeometry(10, 10, 10), new THREE.MeshLambertMaterial({
+                color: 0xffff00
+            }));
+            rightCube.position.x = x;
+            rightCube.position.y = y;
+            rightCube.position.z = z;
+            scene.add(rightCube);
+        }
+
+        function addLink({
+            x,
+            y
+        }) {
+            var geometry = new THREE.Geometry();
+            var material = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                linewidth: 12
+            });
+            var color1 = new THREE.Color(0xff0000),
+                color2 = new THREE.Color(0xff0000);
+            console.log(x)
+            // 线的材质可以由2点的颜色决定 线的材质可以由2点的颜色决定
+            var p1 = new THREE.Vector3(x.x, x.y, x.z);
+            var p2 = new THREE.Vector3(y.x, y.y, y.z);
+            geometry.vertices.push(p1);
+            geometry.vertices.push(p2);
+            geometry.colors.push(color1, color2);
+
+            // var line = new THREE.Line( geometry, material, THREE.LinePieces ); scene.add(line);
+        }
+
+        function load() {
+            var objects = []
+            var cubeGeometry = new THREE.BoxBufferGeometry(20, 20, 20);
+            var cubeMaterial = new THREE.MeshLambertMaterial({
+                color: 0x00ff80,
+                overdraw: 0.5
+            });
+            loadingManager = new THREE.LoadingManager();
+            //生成场景
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('mainCanvas')
+            });
+            renderer.setClearColor(0xFFFFFF, 1.0);
+            scene = new THREE.Scene();
+            //添加相机
+            var light = new THREE.AmbientLight(0xcccccc);
+            scene.add(light);
+            var light = new THREE.DirectionalLight(0xffffff);
+            light.position.set(20, 10, 5);
+            scene.add(light);
+            var axisHelper = new THREE.AxisHelper(100);
+            scene.add(axisHelper);
+            initCamea();
+            //添加网格线
+            initGrid()
+            initLight()
+            var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
+            geometry.rotateX(-Math.PI / 2);
+
+            plane = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+                visible: false
+            }));
+            scene.add(plane);
+
+            objects.push(plane);
+            //点击
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            document.addEventListener('mousedown', onDocumentMouseDown, false);
+
+            function onDocumentMouseDown(event) {
+                console.log(event)
+                event.preventDefault();
+                if (event.button == 2) {
+
+                    mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+                    raycaster.setFromCamera(mouse, camera);
+                    var intersects = raycaster.intersectObjects(objects);
+                    var intersect = intersects[0];
+                    var voxel = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                    voxel.position.copy(intersect.point).add(intersect.face.normal);
+                    voxel.position.divideScalar(20).floor().multiplyScalar(20).addScalar(10);
+                    scene.add(voxel);
+                    objects.push(voxel);
+                }
+            }
+            // initBox({x: 0, y: 0, z: 0}) initBox({x: 100, y: 0, z: 0}) initBox({x: 200, y: 0, z: 0})
+            //
+            // initBox({x: 0, y: 0, z: 200}) initBox({x: 100, y: 0, z: 200}) initBox({x: 200, y: 0, z: 200})
+            //
+            // initBox({x: 0, y: 0, z: 400}) initBox({x: 100, y: 0, z: 400}) initBox({x: 200, y: 0, z: 400}) addLink({   x: {     x: 0,     y: 0,     z: 200   },   y: {     x: 0,     y: 0,     z: 0   } }) addLink({   x: {     x: 100,     y: 0,     z: 200   }, y:
+            // {     x: 0,     y: 0,     z: 400   } }) addLink({   x: {     x: 200,     y: 0,     z: 200   },   y: {     x: 0,     y: 0,     z: 400   } })
+
+
+
+
+
+
+
+
+
+
+
+            //obj
+
+            for (var _key in models) {
+                (function (key) { 
+                    var mtlLoader = new THREE.MTLLoader();
+                    mtlLoader.load(models[key].mtl, function (materials) {
+                        console.log(materials)
+                        materials.preload(); 
+                        var objLoader = new THREE.OBJLoader(); 
+                        objLoader.setMaterials(materials);
+                        objLoader.load(models[key].obj, function (mesh) {
+
+                            mesh.traverse(function (node) {
+                                if (node instanceof THREE.Mesh) {
+                                    node.castShadow = true;
+                                    node.receiveShadow = true;
+                                }
+                            });
+                            models[key].mesh = mesh;
+                            mesh.position.x = Math.random()*100
+                            mesh.position.z = Math.random()*100
+                            mesh.position.y = Math.random()*100
+                            scene.add(mesh)
+                        });
+                    });
+
+                })(_key);
+            } 
+            // var mtlLoader = new THREE.MTLLoader();
+            // mtlLoader.load('./obj/server.mtl', function (materials) {
+            //     materials.preload();
+            //     var objLoader = new THREE.OBJLoader();
+            //     objLoader.setMaterials(materials); 
+            //     objLoader.load('./obj/server.obj', function (object) {
+            //         object.position.y = 5
+            //         hostObj = object 
+            //         scene.add(object)
+            //         // object.position.y = - 95;  if has object, add to scene if (object.children.length > 0) {     scene.add( object.children[0] ); }
+            //     });
+            // });
+            // CONTROLS
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            //动态阻尼系数 就是鼠标拖拽旋转灵敏度
+            controls.dampingFactor = 1;
+            //是否可以缩放
+            controls.enableZoom = true;
+            //是否自动旋转 controls.autoRotate = true; 设置相机距离原点的最远距离
+            controls.minDistance = 200;
+            //设置相机距离原点的最远距离
+            controls.maxDistance = 600;
+            //是否开启右键拖拽
+            controls.enablePan = true;
+            // cameraControls.addEventListener('change', renderer);
+            draw()
+        }
+        window.addEventListener("mousewheel", function (e) {
+            if (e.wheelDelta > 0) {
+                if (camera.fov > 5) {
+                    camera.fov -= 2
+                }
+
+            } else {
+
+                camera.fov += 2
+            }
+        })
+        window.onkeydown = function (e) {
+            console.log(e.keyCode)
+            //上 下 左 右
+            switch (e.keyCode) {
+                case 38:
+                    camera.position.z -= 10
+                    break;
+                case 40:
+                    camera.position.z += 10
+                    break;
+                case 37:
+                    camera.position.x -= 10
+                    break;
+                case 39:
+                    camera.position.x += 10
+                    break;
+            }
+        }
+    </script>
+</head>
+
+<body onload="load()">
+    <canvas id="mainCanvas" width="1600px" height="800px"></canvas>
+</body>
+
+</html>
