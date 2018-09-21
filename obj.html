@@ -128,7 +128,7 @@
             renderer = new THREE.WebGLRenderer({
                 canvas: document.getElementById('mainCanvas')
             });
-            renderer.setClearColor(0xFFFFFF, 1.0);
+            renderer.setClearColor(0x000f1c, 1.0);
             scene = new THREE.Scene();
             //添加相机
             var light = new THREE.AmbientLight(0xcccccc);
@@ -137,7 +137,7 @@
             light.position.set(20, 10, 5);
             scene.add(light);
             var axisHelper = new THREE.AxisHelper(100);
-            scene.add(axisHelper);
+            scene.add(axisHelper); 
             initCamea();
             //添加网格线
             initGrid()

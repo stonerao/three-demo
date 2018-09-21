@@ -6,6 +6,8 @@
   <script type="text/javascript" src="./lib/OrbitControls.js"></script>
   <script type="text/javascript" src="./lib/MTLLoader.js"></script>
   <script type="text/javascript" src="./lib/OBJLoader.js"></script>
+   
+  <script type="text/javascript" src="./lib/tween.min.js"></script>
 
   <script type="text/javascript">
     let [width, height] = [1600, 800]
@@ -62,21 +64,30 @@
       scene.add(rightCube);
     }
 
+    function animation() {
+
+    }
+
     function inigSign() {
-      var material = new THREE.MeshLambertMaterial({color: 0x000000,lightMapIntensity :3});
+      var materials = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        lightMapIntensity: 3
+      });
       var loader = new THREE.FontLoader();
       //读取字体JSON文件 创建字体
-      loader.load('./lib/helvetiker_regular.typeface.json', function (font) { 
-        var mesh = new THREE.Mesh(new THREE.TextGeometry('GO111111111111', {
+      loader.load('./lib/helvetiker_regular.typeface.json', function (font) {
+        let textFont = new THREE.TextGeometry('GO111111111111', {
           font: font,
-          size: 1,
-          height: 1,
-        }), material); 
-        mesh.position.x = 100;
-        mesh.position.y = 100;
-        mesh.position.z = 100;
-        scene.add(mesh);
- 
+          size: 8,
+          height: 2,
+        })
+        textFont.center()
+        var mesh1 = new THREE.Mesh(textFont, materials);
+        mesh1.position.x = 100;
+        mesh1.position.y = 100;
+        mesh1.position.z = 100;
+        scene.add(mesh1);
+
       });
 
       //显示名字
@@ -92,27 +103,6 @@
       scene.add(plane);
     }
 
-    function addLink({
-      x,
-      y
-    }) {
-      var geometry = new THREE.Geometry();
-      var material = new THREE.LineBasicMaterial({
-        vertexColors: true,
-        linewidth: 12
-      });
-      var color1 = new THREE.Color(0xff0000),
-        color2 = new THREE.Color(0xff0000);
-      console.log(x)
-      // 线的材质可以由2点的颜色决定 线的材质可以由2点的颜色决定
-      var p1 = new THREE.Vector3(x.x, x.y, x.z);
-      var p2 = new THREE.Vector3(y.x, y.y, y.z);
-      geometry.vertices.push(p1);
-      geometry.vertices.push(p2);
-      geometry.colors.push(color1, color2);
-
-      // var line = new THREE.Line( geometry, material, THREE.LinePieces ); scene.add(line);
-    }
 
     function load() {
       var objects = []
@@ -125,7 +115,7 @@
       renderer = new THREE.WebGLRenderer({
         canvas: document.getElementById('mainCanvas')
       });
-      renderer.setClearColor(0xFFFFFF, 1.0);
+      renderer.setClearColor(0x000f1c, 1.0);
       scene = new THREE.Scene();
       //添加相机
       var light = new THREE.AmbientLight(0xcccccc);
@@ -140,6 +130,7 @@
       initGrid()
       initLight()
       inigSign()
+      animation()
       var geometry = new THREE.PlaneBufferGeometry(1000, 1000);
       geometry.rotateX(-Math.PI / 2);
 
@@ -152,14 +143,14 @@
       //点击
       raycaster = new THREE.Raycaster();
       mouse = new THREE.Vector2();
-      document.addEventListener('mousedown', onDocumentMouseDown, false);
+      // document.addEventListener('mousedown', onDocumentMouseDown, false);
 
       function onDocumentMouseDown(event) {
         console.log(event)
         event.preventDefault();
         if (event.button == 2) {
 
-          mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
+          /* mouse.x = (event.clientX / renderer.domElement.clientWidth) * 2 - 1;
           mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
           raycaster.setFromCamera(mouse, camera);
           var intersects = raycaster.intersectObjects(objects);
@@ -168,14 +159,120 @@
           voxel.position.copy(intersect.point).add(intersect.face.normal);
           voxel.position.divideScalar(20).floor().multiplyScalar(20).addScalar(10);
           scene.add(voxel);
-          objects.push(voxel);
+          objects.push(voxel); */
         }
       }
       // initBox({x: 0, y: 0, z: 0}) initBox({x: 100, y: 0, z: 0}) initBox({x: 200, y: 0, z: 0})
       //
       // initBox({x: 0, y: 0, z: 200}) initBox({x: 100, y: 0, z: 200}) initBox({x: 200, y: 0, z: 200})
       //
-      // initBox({x: 0, y: 0, z: 400}) initBox({x: 100, y: 0, z: 400}) initBox({x: 200, y: 0, z: 400}) addLink({   x: {     x: 0,     y: 0,     z: 200   },   y: {     x: 0,     y: 0,     z: 0   } }) addLink({   x: {     x: 100,     y: 0,     z: 200   }, y:
+      /*    initBox({x: 0, y: 0, z: 400})
+          initBox({x: 100, y: 0, z: 400})
+           initBox({x: 200, y: 0, z: 400}) */
+      function addLink({
+        x,
+        y
+      }) {
+        var geometry = new THREE.Geometry();
+        
+       console.log()
+        console.log(geometry)
+        // geometry.verticesNeedUpdate=true
+        // geometry.groupsNeedUpdate=true
+        // geometry.lineDistancesNeedUpdate=true
+        // geometry.colorsNeedUpdate=true
+        var material = new THREE.LineDashedMaterial({
+          vertexColors: true,
+          linecap: "square",
+          linewidth:10
+        });
+        var color1 = new THREE.Color(0xff0000),
+          color2 = new THREE.Color(0xff0000),
+          color3 = new THREE.Color(0x5588aa)
+        // 线的材质可以由2点的颜色决定 线的材质可以由2点的颜色决定
+        var p1 = new THREE.Vector3(y.x, y.y, y.z);
+        var p2 = new THREE.Vector3(y.x, y.y, y.z);
+        var p3 = new THREE.Vector3(y.x , y.y + 100, y.z + 100)
+         
+        geometry.vertices.push(p1);
+        geometry.vertices.push(p2);
+        geometry.colors.push(color1, color2, color3);
+        geometry.dynamic = true;
+        var edges = new THREE.EdgesGeometry( geometry ); 
+        var line = new THREE.Line(geometry, material,THREE.LineSegments);
+        // line.matrixWorldNeedsUpdate = true
+        scene.add(line);
+        var update = function() {  
+          if(line.geometry.vertices[0].x>=150){
+            return 
+          }
+          setTimeout(x=>{  
+            //  line.geometry.verticesNeedUpdate =true
+            line.geometry.verticesNeedUpdate =true
+            line.geometry.vertices[0].x +=2
+            line.geometry.vertices[0].y +=2
+            line.geometry.vertices[0].z +=2  
+            update()
+          },10) 
+        };
+        let num = 0
+        update() 
+        let nums = 0
+        setInterval(x=>{
+          nums+=1
+          line.geometry.colorsNeedUpdate =true
+          if(nums%2==0){
+            line.geometry.colors[0] = new THREE.Color(0x42aaff)
+            line.geometry.colors[1] = new THREE.Color(0x42aaff)
+          }else{
+            line.geometry.colors[0] = new THREE.Color(0xff0000)
+            line.geometry.colors[1] = new THREE.Color(0xff0000)
+          }
+          
+        },300)
+       /*  setTimeout(x => { 
+          console.log(line)
+          update() 
+         
+         
+        }, 100)   */
+       /*  let time = setInterval(x => {
+          num += 1
+          if (num == 20) {
+            clearInterval(time)
+          }
+          draw()
+        }, 100) */
+        /* 
+        let time = setInterval(z=>{
+          num+=1
+          console.log(line) 
+          // line.position.x+=10
+          line.scale.x+=0.1
+          line.scale.y+=0.2
+          line.scale.z+=0.1 
+          let b = (1+3) 
+          line.position.x+=Math.abs((x.x-y.x)/30)*b
+          if(num==30){
+            clearInterval(time)
+          }
+          draw()
+        },10) */
+      }
+
+      addLink({
+        x: {
+          x: 150,
+          y: 20,
+          z: 50
+        },
+        y: {
+          x: -50,
+          y: 0,
+          z: 30
+        }
+      })
+      // addLink({   x: {     x: 100,     y: 0,     z: 200   }, y:
       // {     x: 0,     y: 0,     z: 400   } }) addLink({   x: {     x: 200,     y: 0,     z: 200   },   y: {     x: 0,     y: 0,     z: 400   } })
       /* var mtlLoader = new THREE.MTLLoader();
       mtlLoader.load('./at/all.mtl', function (materials) {
@@ -197,7 +294,7 @@
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       //动态阻尼系数 就是鼠标拖拽旋转灵敏度
-      controls.dampingFactor = 0.25;
+      controls.dampingFactor = 1;
       //是否可以缩放
       controls.enableZoom = true;
       //是否自动旋转 controls.autoRotate = true; 设置相机距离原点的最远距离

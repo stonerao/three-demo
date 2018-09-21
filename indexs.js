@@ -1,11 +1,15 @@
 /* 设置画布的高宽 */
+window.addEventListener('message', function (event) {
+  //接受父元素信息
+  console.log(event)
+}, false);
 let canvasId = "mainCanvas"
 let canvas = document.getElementById("mainCanvas")
 let [width, height] = [1600, 800]
 var scene = null;
 var camera = null;
 var renderer = null;
-var fov = 45
+var fov = 40
 var id = null;
 var controls;
 let stats;
@@ -19,7 +23,7 @@ async function onResize() {
   height = parent.offsetHeight;
   canvas.width = width
   canvas.height = height
-
+  console.log(width, height)
 }
 
 function initGrid() {
@@ -36,17 +40,16 @@ function initLight() {
   scene.add(light1);
 }
 
-
 function initCamea() {
   //远交相机
   camera = new THREE.PerspectiveCamera(fov, width / height, 1, 10000);
-  camera.position.set(0, 200, 500);
+  camera.position.set(-170, 200, 450);
   camera.lookAt(new THREE.Vector3(0, 0, 0));
   scene.add(camera);
 }
 
 function draw() {
-  stats.update()
+  // stats.update()
   renderer.render(scene, camera);
   requestAnimationFrame(draw);
 }
@@ -244,13 +247,13 @@ function addLink({
   var p2 = new THREE.Vector3(y.x, y.y, y.z);
   geometry.vertices.push(p1);
   geometry.vertices.push(p2);
-  geometry.colors.push(color1, color2); 
+  geometry.colors.push(color1, color2);
   var line = new THREE.Line(geometry, material);
   line.params = {
-    target:x.id,
-    source:y.id,
-    type:"link"
-  } 
+    target: x.id,
+    source: y.id,
+    type: "link"
+  }
   scene.add(line);
 }
 
@@ -267,7 +270,7 @@ function initObj(params) {
       object.params = {
         id: params.id,
         type: "node",
-        ip:params.ip,
+        ip: params.ip,
       }
       scene.add(object)
       Objlength++
@@ -285,9 +288,9 @@ function initObj(params) {
           src: "10.101.12.64",
           dst: "10.101.80.12"
         })
-        activeNode("10.101.12.64",true)
-        activeNode("10.101.80.12",false)
-        
+        activeNode("10.101.12.64", true)
+        activeNode("10.101.80.12", false)
+
       }
     });
   });
@@ -311,34 +314,36 @@ function getNodeTop(id, arr) {
     this.getNodeTop(link.source, arr)
   }
 }
-function activeShowLink(link){
+
+function activeShowLink(link) {
   let nums = 0
-  let time  = setInterval(x=>{
-    nums+=1
-    link.geometry.colorsNeedUpdate =true
-    if(nums%2==0){
+  let time = setInterval(x => {
+    nums += 1
+    link.geometry.colorsNeedUpdate = true
+    if (nums % 2 == 0) {
       link.geometry.colors[0] = new THREE.Color(0x42aaff)
       link.geometry.colors[1] = new THREE.Color(0x42aaff)
-    }else{
+    } else {
       link.geometry.colors[0] = new THREE.Color(0xff0000)
       link.geometry.colors[1] = new THREE.Color(0xff0000)
     }
-    if(nums==100){
+    if (nums == 100) {
       clearInterval(time)
     }
-  },300)
+  }, 300)
 }
-function activeLink(arr){
+
+function activeLink(arr) {
   let childns = scene.children.filter(x => x.params).filter(x => x.params.type == "link")
-  
-  arr.forEach(y=>{
-    let acline = childns.filter(x=>{
+
+  arr.forEach(y => {
+    let acline = childns.filter(x => {
       let params = x.params
-      return params.target == y.target&&params.source ==y.source
-    })[0] 
+      return params.target == y.target && params.source == y.source
+    })[0]
     activeShowLink(acline)
   })
-   
+
 }
 
 function attackEvent({
@@ -347,52 +352,53 @@ function attackEvent({
 }) {
   //找到src和dst节点
   let childns = scene.children.filter(x => x.params).filter(x => x.params.type == "node")
-  let srcNode = childns.filter(x=>src===x.params.ip)[0]
-  let dstNode = childns.filter(x=>dst===x.params.ip)[0]
+  let srcNode = childns.filter(x => src === x.params.ip)[0]
+  let dstNode = childns.filter(x => dst === x.params.ip)[0]
   let arrSrc = []
   let arrTar = []
-  getNodeTop(srcNode.params.id,arrSrc)
-  getNodeTop(dstNode.params.id,arrTar)
-  let arr = [...arrTar,...arrSrc]
-  var a1= []
-  arrSrc.forEach(x=>{
-    arrTar.forEach(y=>{
-      if(x.target==y.target&&x.source==y.source){
+  getNodeTop(srcNode.params.id, arrSrc)
+  getNodeTop(dstNode.params.id, arrTar)
+  let arr = [...arrTar, ...arrSrc]
+  var a1 = []
+  arrSrc.forEach(x => {
+    arrTar.forEach(y => {
+      if (x.target == y.target && x.source == y.source) {
         a1.push(y)
       }
     })
   })
-  arr = arr.filter(x=>{
-    return a1.filter(y=>x.target==y.target&&x.source==y.source).length==0
+  arr = arr.filter(x => {
+    return a1.filter(y => x.target == y.target && x.source == y.source).length == 0
   })
-  activeLink(arr) 
+  activeLink(arr)
 }
 
-function activeNode(ip,bl) {
+function activeNode(ip, bl) {
   let node = scene.children.filter(x => x.params).filter(x => x.params.type == "node" && x.params.ip == ip)[0]
   console.log(node)
   var geometry = new THREE.BoxGeometry(12, 12, 12);
   var material = new THREE.MeshBasicMaterial({
-    color:bl? 0xff0000:0x00ff00,
-    wireframe:true,
-    wireframeLinecap:"butt",
-    skinning:true,
+    color: bl ? 0xff0000 : 0x00ff00,
+    wireframe: true,
+    wireframeLinecap: "butt",
+    skinning: true,
     // alphaMap:0.1
   });
   var cube = new THREE.Mesh(geometry, material);
   let position = node.position;
   cube.position.x = position.x;
-  cube.position.y = position.y+1;
+  cube.position.y = position.y + 1;
   cube.position.z = position.z;
-  
-  setInterval(x=>{
-    cube.rotation.x+=0.5
-    cube.rotation.z+=0.5
-    cube.rotation.y+=0.5
-  },100) 
+
+  setInterval(x => {
+    cube.rotation.x += 0.5
+    cube.rotation.z += 0.5
+    cube.rotation.y += 0.5
+  }, 100)
   scene.add(cube);
 
 }
+
 function load() {
   onResize()
   renderer = new THREE.WebGLRenderer({
@@ -407,7 +413,7 @@ function load() {
   initControls()
   // initObj()
   list.forEach((x, i) => {
- 
+
     x.x = x.x - 50
     if (x.type == 1) {
       //主机
@@ -463,7 +469,7 @@ function load() {
   //dst  10.101.12.229
   //找到对应的两个节点
 
-  stats = initStats()
+  // stats = initStats()
   //点击事件
   initClick()
   // initDragControls()

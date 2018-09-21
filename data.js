@@ -56,11 +56,16 @@ function getPosition(arr) {
     }
 }
 
-function getSwitchPosition(arr,id=0,ip="") {
+function getSwitchPosition(arr,id=0,ip="",name) {
     let obj = getPosition(arr)
     obj.y = obj.y + switchHeight
+    if(ip){
+        obj.ip=ip
+    }
+    if(name){
+        obj.name=name
+    }
     obj.id=id
-    obj.ip=ip
     return obj
 }
 /* 
@@ -414,21 +419,21 @@ serverCenter.forEach(x=>{
     })
 })
 switchArr.push( 
-    getSwitchPosition(dep1,108),
-    getSwitchPosition(dep2,109),
-    getSwitchPosition(dep3,110),
-    getSwitchPosition(dep4,111),
-    getSwitchPosition(tdep1,112),
-    getSwitchPosition(tdep2,113),
-    getSwitchPosition(ddep,114),
-    getSwitchPosition(gdep,115),
-    getSwitchPosition(ndep,116,"10.101.0.0/24"),
-    getSwitchPosition(serverCenter,117),
+    getSwitchPosition(dep1,108,"10.101.10.0/24","R&D Dept.1"),
+    getSwitchPosition(dep2,109,"10.101.11.0/24","R&D Dept.2"),
+    getSwitchPosition(dep3,110,"10.101.12.0/24","R&D Dept.3"),
+    getSwitchPosition(dep4,111,"10.101.13.0/24","R&D Dept.4"),
+    getSwitchPosition(tdep1,112,"10.101.20.0/24","Test Dept.1"),
+    getSwitchPosition(tdep2,113,"10.101.21.0/24","Test Dept.2"),
+    getSwitchPosition(ddep,114,"10.101.81.0/24","Design Dept."),
+    getSwitchPosition(gdep,115,"10.101.80.0/24","General Dept."),
+    getSwitchPosition(ndep,116,"10.101.0.0/24","Network Center"),
+    getSwitchPosition(serverCenter,117,"10.101.1.0/24","Data Center"),
  ) 
 //研发部
 let devDep = {
     x:getSwitchPosition(dep3).x+80,
-    y:getSwitchPosition(dep3).y+25,
+    y:getSwitchPosition(dep3).y+45,
     z:getSwitchPosition(dep3).z,
     id:118
 }
@@ -442,7 +447,7 @@ nexus.links.push(
 //测试部
 let testDep = {
     x:getSwitchPosition(tdep).x,
-    y:getSwitchPosition(tdep).y+25,
+    y:getSwitchPosition(tdep).y+45,
     z:getSwitchPosition(tdep).z-50,
     id:119
 }
@@ -458,7 +463,7 @@ let uiDepA = [
 ]
 let uiDeps = {
     x:getSwitchPosition(uiDepA).x-70,
-    y:getSwitchPosition(uiDepA).y+25,
+    y:getSwitchPosition(uiDepA).y+45,
     z:getSwitchPosition(uiDepA).z,
     id:120
 }
@@ -473,7 +478,7 @@ let centerDepArr = [
 ]
 let centerDep = {
     x:getSwitchPosition(centerDepArr).x,
-    y:getSwitchPosition(centerDepArr).y+25,
+    y:getSwitchPosition(centerDepArr).y+45,
     z:getSwitchPosition(centerDepArr).z+20,
     id:121
 }
@@ -487,7 +492,7 @@ nexus.links.push(
 )
 //连接路由器
 nexus.links.push(
-    { target:118, source:126 } , 
+    { target:124, source:126 } , 
     { target:119, source:126 } , 
     { target:120, source:126 } , 
     { target:121, source:126 } , 
@@ -544,8 +549,8 @@ const list = [
     ...firewallArr
 ]
 routerArr.push({
-    ...getPosition(list),
-    y:130,
+    ...getPosition(list), 
+    y:160,
     type:4,
     typeName:"router",
     id:126
