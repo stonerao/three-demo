@@ -2,12 +2,17 @@
 
 newmtl 材质.9
 Ka 1 1 1
-map_Ka topo_hostControl副本.png
+map_Ka topo_hostControlå‰¯æœ¬.png
 Kd 1 1 1
+map_Kd 2.png
+Ks 1 1 1
+Ns 50
 illum 7
 
 newmtl 材质.10
 Ka 0.10980392247438 0.55294120311737 0.77647060155869
-Kd 1 1 1
+Kd 0.1843137294054 0.53333336114883 0.73725491762161
+Ks 1 1 1
+Ns 50
 illum 7
 

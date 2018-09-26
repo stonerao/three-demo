@@ -12,16 +12,16 @@ let stats;
 var mouse;
 var raycaster;
 var Objlength = 0;
-
+let timeAdd =200
 async function onResize() {
   let parent = canvas.parentNode;
   width = parent.offsetWidth;
   height = parent.offsetHeight;
   canvas.width = width
-  canvas.height = height
-
+  canvas.height = height 
 }
-
+let childrens = []
+let t;
 function initGrid() {
   var helper = new THREE.GridHelper(width, 40);
   // helper.setColors(0x0000ff, 0x808080);
@@ -47,6 +47,7 @@ function initCamea() {
 
 function draw() {
   stats.update()
+  TWEEN.update();
   renderer.render(scene, camera);
   requestAnimationFrame(draw);
 }
@@ -203,7 +204,7 @@ function inigSign(params) {
   loader.load('./lib/helvetiker_regular.typeface.json', function (font) {
     let textFont = new THREE.TextGeometry(name, {
       font: font,
-      size: 6,
+      size: 4,
       height: 2,
     })
     textFont.center()
@@ -218,7 +219,7 @@ function inigSign(params) {
   //显示名字
   var geometry = new THREE.PlaneGeometry(65, 12, 0);
   var material = new THREE.MeshBasicMaterial({
-    color: 0xAb2d40,
+    color: 0x2b52ee,
     side: THREE.DoubleSide
   });
   var plane = new THREE.Mesh(geometry, material);
@@ -235,7 +236,7 @@ function addLink({
   var geometry = new THREE.Geometry();
   var material = new THREE.LineBasicMaterial({
     vertexColors: true,
-    linewidth: 12
+    linewidth:1
   });
   var color1 = new THREE.Color(0x42aaff),
     color2 = new THREE.Color(0x42aaff);
@@ -244,14 +245,36 @@ function addLink({
   var p2 = new THREE.Vector3(y.x, y.y, y.z);
   geometry.vertices.push(p1);
   geometry.vertices.push(p2);
-  geometry.colors.push(color1, color2); 
+  geometry.colors.push(color1, color2);
   var line = new THREE.Line(geometry, material);
   line.params = {
-    target:x.id,
-    source:y.id,
-    type:"link"
-  } 
+    target: x.id,
+    source: y.id,
+    type: "link"
+  }
   scene.add(line);
+}
+
+function addLink1({
+  x,
+  y
+}) { 
+  var geometry = new THREE.Geometry();
+  var material = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    linewidth: 12
+  });
+  var color1 = new THREE.Color(0xff0000),
+    color2 = new THREE.Color(0xff0000);
+  // 线的材质可以由2点的颜色决定 线的材质可以由2点的颜色决定
+  var p1 = new THREE.Vector3(x.x, x.y, x.z);
+  var p2 = new THREE.Vector3(y.x, y.y, y.z);
+  geometry.vertices.push(p1);
+  geometry.vertices.push(p2);
+  geometry.colors.push(color1, color2);
+  var line = new THREE.Line(geometry, material);
+  scene.add(line);
+  return line
 }
 
 function initObj(params) {
@@ -267,7 +290,7 @@ function initObj(params) {
       object.params = {
         id: params.id,
         type: "node",
-        ip:params.ip,
+        ip: params.ip,
       }
       scene.add(object)
       Objlength++
@@ -285,15 +308,184 @@ function initObj(params) {
           src: "10.101.12.64",
           dst: "10.101.80.12"
         })
-        activeNode("10.101.12.64",true)
-        activeNode("10.101.80.12",false)
-        
+        activeNode("10.101.12.64", true)
+        activeNode("10.101.80.12", false) 
+        childrens = scene.children;
+        t.init()
       }
     });
-  });
-
+  }); 
 }
 
+//测试动画
+function tLink(arr) { 
+  let childns = scene.children.filter(x => x.params).filter(x => x.params.type == "link")
+  let links = arr.map(y => { 
+    let acline = childns.filter(x => {
+      let params = x.params
+      if(params.target == y.target && params.source == y.source){
+        if(y.sorts==true){
+          params.sorts=true
+        }
+      }
+      
+      return params.target == y.target && params.source == y.source
+    })[0]
+    return acline
+  })  
+  function acl(arr){
+    if(arr.length==0){
+      return
+    }
+    let l=arr.splice(0,1)  
+    let src = l[0].geometry.vertices[0]
+    let dst = l[0].geometry.vertices[1] 
+    if(l[0].params.sorts){
+      t.activeLinks(dst,src)
+    }else{
+      t.activeLinks(src,dst)
+    } 
+    setTimeout(x=>{
+      acl(arr)
+    },timeAdd)
+  }
+  acl(links) 
+}
+
+class twwenFunc {
+  animate() {
+    this.animate = this.animate.bind(this)
+    requestAnimationFrame(this.animate)
+    TWEEN.update()
+  }
+  activeLinks(xp1, xp2) {
+    let p1 = {
+      ...xp1
+    }
+    let p2 = {
+      ...xp2
+    }
+    function addCY(o) {
+      var geometry = new THREE.SphereBufferGeometry(2, 6, 6);
+      var material = new THREE.MeshBasicMaterial({
+        color: 0xffff00
+      });
+      var sphere = new THREE.Mesh(geometry, material);
+      scene.add(sphere);
+      sphere.position.y = o.y
+      sphere.position.x = o.x
+      sphere.position.z = o.z
+      setTimeout(x=>{
+        // sphere.remove() 
+        sphere.material.dispose();
+        sphere.geometry.dispose(); 
+        scene.remove(sphere);
+         
+       
+      },1000)
+    }
+    const tween = new TWEEN.Tween(p1).to(p2, timeAdd).easing(TWEEN.Easing.Linear.None).start()
+    tween.onUpdate((data) => {
+      // console.log(p2)
+      addCY(p1) 
+    })
+    this.animate()
+  }
+  init() {
+    // let p1 = {
+    //   x: 1,
+    //   y: 15,
+    //   z: 1
+    // }
+    // let p2 = {
+    //   x: 100,
+    //   y: 110,
+    //   z: 100
+    // }
+    let alinks = attackEvent({
+      src: "10.101.20.167",
+      dst: "10.101.21.89"
+    })
+    //正确顺序
+    console.log(alinks)
+    let srcId = ipGetNode("10.101.21.89");
+    let updateArr = []
+    function getIdArr(id,arr){
+      alinks.forEach(x=>{
+        if(x.target==id){
+          //找到当前
+          alinks = alinks.filter(y=>y.target!==id) 
+          arr.push(x)
+          getIdArr(x.source,arr);
+        }else if(x.source==id){
+          alinks = alinks.filter(y=>y.source!==id)
+          arr.push({
+            sorts:true,
+            ...x
+          } )
+          getIdArr(x.target,arr)
+        }
+      })
+
+    }
+    getIdArr(srcId,updateArr) 
+    // //找到该连线的所有线条
+    // console.log(alinks) 
+    let ch = scene.children
+    tLink(updateArr)
+   
+    setTimeout(x=>{
+      console.log(THREE.Cache)
+      console.log(scene)
+      console.log(THREE.Cache.files)
+    },5000)
+   console.log(scene)
+    // setInterval(x=>{ 
+    //   scene.children=scene.children.filter((x,y)=>y<280)
+    //   console.log(scene)
+    //   // tLink(updateArr) 
+    // },5000)
+    console.log(renderer)
+    let num = 0
+   let time =  setInterval(x=>{
+     /*  scene.children=childrens  
+      scene.updateMatrixWorld() 
+     
+      THREE.Cache.clear()  
+  
+      // THREE.Cache.clear()
+      */
+     num++
+    //  tLink(updateArr)
+     if(num==20){
+       alert(1)
+       clearInterval(time)
+     }
+    },15000)
+
+    // function addCY(o) {
+    //   var geometry = new THREE.SphereGeometry(1, 6, 6);
+    //   var material = new THREE.MeshBasicMaterial({
+    //     color: 0xffff00
+    //   });
+    //   var sphere = new THREE.Mesh(geometry, material);
+    //   scene.add(sphere);
+    //   sphere.position.y = o.y
+    //   sphere.position.x = o.x
+    //   sphere.position.z = o.z
+    // }
+    // const tween = new TWEEN.Tween(p1).to(p2, 1000).easing(TWEEN.Easing.Back.In).start()
+    // const tween = new TWEEN.Tween(p1).to(p2, 1000).easing(TWEEN.Easing.Bounce.In).start()
+    // const tween = new TWEEN.Tween(p1).to(p2, 1000).easing(TWEEN.Easing.Quadratic.InOut).start()
+    // const tween = new TWEEN.Tween(p1).to(p2, 1000).easing(TWEEN.Easing.Linear.None).start()
+    // const tween = new TWEEN.Tween(p1).to(p2, 1000).easing(TWEEN.Easing.Elastic.In).start()
+    // tween.onUpdate((data) => {
+    //   addCY(p1)
+    // })
+    // this.animate()
+  }
+}
+t= new twwenFunc()
 function getNodeTop(id, arr) {
   //找到节点上级一直到路由器 
   let srcNode = 126
@@ -311,34 +503,34 @@ function getNodeTop(id, arr) {
     this.getNodeTop(link.source, arr)
   }
 }
-function activeShowLink(link){
+
+function activeShowLink(link) {
   let nums = 0
-  let time  = setInterval(x=>{
-    nums+=1
-    link.geometry.colorsNeedUpdate =true
-    if(nums%2==0){
+  let time = setInterval(x => {
+    nums += 1
+    link.geometry.colorsNeedUpdate = true
+    if (nums % 2 == 0) {
       link.geometry.colors[0] = new THREE.Color(0x42aaff)
       link.geometry.colors[1] = new THREE.Color(0x42aaff)
-    }else{
+    } else {
       link.geometry.colors[0] = new THREE.Color(0xff0000)
       link.geometry.colors[1] = new THREE.Color(0xff0000)
     }
-    if(nums==100){
+    if (nums == 100) {
       clearInterval(time)
     }
-  },300)
+  }, 300)
 }
-function activeLink(arr){
+
+function activeLink(arr) {
   let childns = scene.children.filter(x => x.params).filter(x => x.params.type == "link")
-  
-  arr.forEach(y=>{
-    let acline = childns.filter(x=>{
+  arr.forEach(y => {
+    let acline = childns.filter(x => {
       let params = x.params
-      return params.target == y.target&&params.source ==y.source
-    })[0] 
+      return params.target == y.target && params.source == y.source
+    })[0]
     activeShowLink(acline)
   })
-   
 }
 
 function attackEvent({
@@ -347,51 +539,57 @@ function attackEvent({
 }) {
   //找到src和dst节点
   let childns = scene.children.filter(x => x.params).filter(x => x.params.type == "node")
-  let srcNode = childns.filter(x=>src===x.params.ip)[0]
-  let dstNode = childns.filter(x=>dst===x.params.ip)[0]
+  let srcNode = childns.filter(x => src === x.params.ip)[0]
+  let dstNode = childns.filter(x => dst === x.params.ip)[0]
   let arrSrc = []
   let arrTar = []
-  getNodeTop(srcNode.params.id,arrSrc)
-  getNodeTop(dstNode.params.id,arrTar)
-  let arr = [...arrTar,...arrSrc]
-  var a1= []
-  arrSrc.forEach(x=>{
-    arrTar.forEach(y=>{
-      if(x.target==y.target&&x.source==y.source){
+  getNodeTop(srcNode.params.id, arrSrc)
+  getNodeTop(dstNode.params.id, arrTar)
+  let arr = [...arrTar, ...arrSrc]
+  var a1 = []
+  arrSrc.forEach(x => {
+    arrTar.forEach(y => {
+      if (x.target == y.target && x.source == y.source) {
         a1.push(y)
       }
     })
   })
-  arr = arr.filter(x=>{
-    return a1.filter(y=>x.target==y.target&&x.source==y.source).length==0
+  arr = arr.filter(x => {
+    return a1.filter(y => x.target == y.target && x.source == y.source).length == 0
   })
-  activeLink(arr) 
+  activeLink(arr)
+  return arr
 }
 
-function activeNode(ip,bl) {
+function activeNode(ip, bl) {
   let node = scene.children.filter(x => x.params).filter(x => x.params.type == "node" && x.params.ip == ip)[0]
-  console.log(node)
+ 
   var geometry = new THREE.BoxGeometry(12, 12, 12);
   var material = new THREE.MeshBasicMaterial({
-    color:bl? 0xff0000:0x00ff00,
-    wireframe:true,
-    wireframeLinecap:"butt",
-    skinning:true,
+    color: bl ? 0xff0000 : 0x00ff00,
+    wireframe: true,
+    wireframeLinecap: "butt",
+    skinning: true,
     // alphaMap:0.1
   });
   var cube = new THREE.Mesh(geometry, material);
   let position = node.position;
   cube.position.x = position.x;
-  cube.position.y = position.y+1;
+  cube.position.y = position.y + 1;
   cube.position.z = position.z;
-  
-  setInterval(x=>{
-    cube.rotation.x+=0.5
-    cube.rotation.z+=0.5
-    cube.rotation.y+=0.5
-  },100) 
+
+  setInterval(x => {
+    cube.rotation.x += 0.5
+    cube.rotation.z += 0.5
+    cube.rotation.y += 0.5
+  }, 100)
   scene.add(cube);
 
+}
+function ipGetNode(ip){
+  //根据IP找到ID
+  let node = scene.children.filter(x => x.params).filter(x => x.params.type == "node" && x.params.ip == ip)[0]
+  return node.params.id
 }
 function load() {
   onResize()
@@ -406,8 +604,7 @@ function load() {
   initLight()
   initControls()
   // initObj()
-  list.forEach((x, i) => {
- 
+  list.forEach((x, i) => { 
     x.x = x.x - 50
     if (x.type == 1) {
       //主机

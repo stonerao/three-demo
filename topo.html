@@ -6,7 +6,7 @@
   <script type="text/javascript" src="./lib/OrbitControls.js"></script>
   <script type="text/javascript" src="./lib/MTLLoader.js"></script>
   <script type="text/javascript" src="./lib/OBJLoader.js"></script>
-   
+
   <script type="text/javascript" src="./lib/tween.min.js"></script>
 
   <script type="text/javascript">
@@ -174,8 +174,8 @@
         y
       }) {
         var geometry = new THREE.Geometry();
-        
-       console.log()
+
+        console.log()
         console.log(geometry)
         // geometry.verticesNeedUpdate=true
         // geometry.groupsNeedUpdate=true
@@ -184,7 +184,7 @@
         var material = new THREE.LineDashedMaterial({
           vertexColors: true,
           linecap: "square",
-          linewidth:10
+          linewidth: 10
         });
         var color1 = new THREE.Color(0xff0000),
           color2 = new THREE.Color(0xff0000),
@@ -192,57 +192,57 @@
         // 线的材质可以由2点的颜色决定 线的材质可以由2点的颜色决定
         var p1 = new THREE.Vector3(y.x, y.y, y.z);
         var p2 = new THREE.Vector3(y.x, y.y, y.z);
-        var p3 = new THREE.Vector3(y.x , y.y + 100, y.z + 100)
-         
+        var p3 = new THREE.Vector3(y.x, y.y + 100, y.z + 100)
+
         geometry.vertices.push(p1);
         geometry.vertices.push(p2);
         geometry.colors.push(color1, color2, color3);
         geometry.dynamic = true;
-        var edges = new THREE.EdgesGeometry( geometry ); 
-        var line = new THREE.Line(geometry, material,THREE.LineSegments);
+        var edges = new THREE.EdgesGeometry(geometry);
+        var line = new THREE.Line(geometry, material, THREE.LineSegments);
         // line.matrixWorldNeedsUpdate = true
         scene.add(line);
-        var update = function() {  
-          if(line.geometry.vertices[0].x>=150){
-            return 
+        var update = function () {
+          if (line.geometry.vertices[0].x >= 150) {
+            return
           }
-          setTimeout(x=>{  
+          setTimeout(x => {
             //  line.geometry.verticesNeedUpdate =true
-            line.geometry.verticesNeedUpdate =true
-            line.geometry.vertices[0].x +=2
-            line.geometry.vertices[0].y +=2
-            line.geometry.vertices[0].z +=2  
+            line.geometry.verticesNeedUpdate = true
+            line.geometry.vertices[0].x += 2
+            line.geometry.vertices[0].y += 2
+            line.geometry.vertices[0].z += 2
             update()
-          },10) 
+          }, 10)
         };
         let num = 0
-        update() 
+        update()
         let nums = 0
-        setInterval(x=>{
-          nums+=1
-          line.geometry.colorsNeedUpdate =true
-          if(nums%2==0){
+        setInterval(x => {
+          nums += 1
+          line.geometry.colorsNeedUpdate = true
+          if (nums % 2 == 0) {
             line.geometry.colors[0] = new THREE.Color(0x42aaff)
             line.geometry.colors[1] = new THREE.Color(0x42aaff)
-          }else{
+          } else {
             line.geometry.colors[0] = new THREE.Color(0xff0000)
             line.geometry.colors[1] = new THREE.Color(0xff0000)
           }
+
+        }, 300)
+        /*  setTimeout(x => { 
+           console.log(line)
+           update() 
           
-        },300)
-       /*  setTimeout(x => { 
-          console.log(line)
-          update() 
-         
-         
-        }, 100)   */
-       /*  let time = setInterval(x => {
-          num += 1
-          if (num == 20) {
-            clearInterval(time)
-          }
-          draw()
-        }, 100) */
+          
+         }, 100)   */
+        /*  let time = setInterval(x => {
+           num += 1
+           if (num == 20) {
+             clearInterval(time)
+           }
+           draw()
+         }, 100) */
         /* 
         let time = setInterval(z=>{
           num+=1
@@ -272,6 +272,41 @@
           z: 30
         }
       })
+
+
+
+      //Create a closed wavey loop
+      var curve = new THREE.CatmullRomCurve3([ 
+        new THREE.Vector3(-112, 18, -15),
+        new THREE.Vector3(15, -5, 5),
+        new THREE.Vector3(120, 155, 130)
+      ]);
+
+      var points = curve.getPoints(50);
+      var geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+      var material = new THREE.LineBasicMaterial({
+        color: 0xff0000,
+        linewidt:10,
+        linecap: 'round', //ignored by WebGLRenderer
+	    linejoin:  'round' //ignored by WebGLRenderer
+      });
+
+      // Create the final object to add to the scene
+      var curveObject = new THREE.LineSegments(geometry, material);
+      scene.add(curveObject)
+
+
+var geometry = new THREE.CylinderGeometry( 5, 5, 5, 5, 15, 5, 30 );
+  
+var mesh = THREE.SkinnedMesh( geometry, material );
+
+// 查看 THREE.Skeleton 中 armSkeleton的例子
+var rootBone = armSkeleton.bones[ 0 ];
+mesh.add( rootBone );
+ 
+ 
+
       // addLink({   x: {     x: 100,     y: 0,     z: 200   }, y:
       // {     x: 0,     y: 0,     z: 400   } }) addLink({   x: {     x: 200,     y: 0,     z: 200   },   y: {     x: 0,     y: 0,     z: 400   } })
       /* var mtlLoader = new THREE.MTLLoader();
