@@ -52,7 +52,7 @@ function initCamea() {
 }
 
 function draw() {
-  // stats.update()
+  // stats.update() 
   renderer.render(scene, camera);
   requestAnimationFrame(draw);
 }
@@ -469,7 +469,7 @@ function getNodeTop(id, arr) {
     return "终结"
   } else {
     arr.push(link)
-    this.getNodeTop(link.source, arr)
+    getNodeTop(link.source, arr)
   }
 }
 
@@ -573,8 +573,7 @@ function load() {
   initLight()
   initControls()
   // initObj()
-  list.forEach((x, i) => {
-
+  list.forEach((x, i) => { 
     x.x = x.x - 50
     if (x.type == 1) {
       //主机
