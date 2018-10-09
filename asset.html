@@ -387,11 +387,10 @@
                             obj: "./obj/"+data.typeName+".obj",
                             ...data
                         }) 
-                        let parentP = Topo.getNode(data.parent).position;
-                        console.log(data)
-                        if(data.type==5){
+                        let parentP = Topo.getNode(data.parent).position; 
+                        if(data.type==6){
                             //入侵检测
-                            
+                            console.log(data)
                         }
                         Topo.addLink({
                             x:{
