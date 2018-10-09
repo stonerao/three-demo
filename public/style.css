@@ -37,3 +37,8 @@ body,html{
   left:0;
   overflow: hidden;
 }
+.inputPositiobn{
+  position: absolute;
+  bottom:10px;
+  right:10px;
+}
