@@ -116,7 +116,8 @@
                 x,
                 y,
                 z,
-                name
+                name,
+                id
             }) {
                 //字体 
                 let height = 15
@@ -137,6 +138,10 @@
                     mesh1.position.x = x;
                     mesh1.position.y = y + height;
                     mesh1.position.z = z;
+                    mesh1.params={
+                        id:id,
+                        type:"font"
+                    }
                     Topo.scene.add(mesh1);
 
                 });
@@ -151,6 +156,10 @@
                 plane.position.x = x;
                 plane.position.y = y + height;
                 plane.position.z = z;
+                plane.params={
+                    id:id,
+                    type:"font"
+                }
                 Topo.scene.add(plane);
             },
             addLink({
@@ -266,7 +275,7 @@
                     }
 
                     //需要title
-                    if (x.name) {
+                    if (x.name) { 
                         Topo.inigSign(x)
                     }
                 })
@@ -369,6 +378,22 @@
                     }, 1000)
                 }, 200)
             },
+            addIdLink(x,y){
+                //根据ID添加
+                console.log(Topo.getNode(x))
+                let xnode = Topo.getNode(x).position; 
+                let ynode = Topo.getNode(y).position; 
+                Topo.addLink({
+                    x:{
+                        ...xnode,
+                        id:x
+                    },
+                    y:{
+                        ...ynode,
+                        id:y
+                    }
+                })            
+            },
             postMessage(obj) {
                 //传递对象过去
                 //接受传递过来的消息 
@@ -379,7 +404,7 @@
                     /**
                      * @param type 1获取到当前 2添加一个node
                      * 
-                    */
+                    */  
                     if(type==2){ 
                         //从主页面接受过来的参数 
                         Topo.initObj({
@@ -389,29 +414,57 @@
                         }) 
                         let parentP = Topo.getNode(data.parent).position; 
                         if(data.type==6){
-                            //入侵检测
-                            console.log(data)
-                        }
-                        Topo.addLink({
-                            x:{
-                                x:data.x,
-                                y:data.y,
-                                z:data.z,
-                                id:data.id
-                            },
-                            y:{
-                               ...parentP,
-                               id:data.parent
-                            }
-                        })
+                            //防火墙 
+                            let lnks = Topo.getLinks()
+                            lnks.forEach((l,i)=>{
+                                if(l.params.source==data.parent){ 
 
-                    }else{ 
+                                }
+                                if(l.params.source==data.parent&&l.params.target==data.next){ 
+                                    // Nexus.links.splice(i,1) 
+                                    Topo.scene.remove(l)
+                                    return
+                                }
+                            }) 
+                            //然后添加两根连线
+                            let link1 = {
+                                source:data.parent,
+                                target:data.id
+                            }
+                            let link2 = {
+                                source:data.id,
+                                target:data.next
+                            }
+                            setTimeout(x=>{
+                                Topo.addIdLink(data.parent,data.id)
+                                Topo.addIdLink(data.id,data.next)
+                            },200)
+                        }
+                        else{
+                            Topo.addLink({
+                                x:{
+                                    x:data.x,
+                                    y:data.y,
+                                    z:data.z,
+                                    id:data.id
+                                },
+                                y:{
+                                ...parentP,
+                                id:data.parent
+                                }
+                            })
+                        } 
+
+                    }else 
+                    if(type==1){ 
                         Topo.currNode = data;
                         Topo.currSelectnode = Topo.scene.children.filter(x => {
                         if (!x.params) {
                             return false
                         } else {
-                            return x.params.id == data.id
+                            if(x.params.type=="node"){ 
+                                return x.params.id == data.id
+                            }
                         } })[0]
                         if (Topo.currSelectnode !== undefined) {  
                             Topo.inputX.value = Topo.currSelectnode.position.x
@@ -421,9 +474,71 @@
                                 ...Topo.currSelectnode.position
                             }) 
                         }
+                    }else if(type==3){ 
+                        //找到当前所有的下级 以及和下级有关的连线
+                        let arr = []
+                        let nodes = Topo.getNodes();
+                        let links = Topo.getLinks();
+                        function getNodeid(id){
+                            arr.push(id)
+                            let link1 = links.filter(l=>l.params.source==id)
+                            let line = link1.map(l=>l.params.target)
+                            link1.forEach(x=>{
+                                Topo.scene.remove(x)
+                            })
+                            if(line.length!=0){
+                                line.forEach(x=>{
+                                    getNodeid(x)
+                                })
+                            }
+                        }
+                        getNodeid(data.id) 
+                        links = Topo.getLinks();
+                        //删除连接到的
+                        links.forEach(x=>{
+                            if(x.params.target==data.id){
+                                Topo.scene.remove(x)
+                            }
+                        }) 
+                        nodes.forEach(x=>{
+                            if(x.params){ 
+                                if(arr.indexOf(x.params.id)!=-1){
+                                    console.log(x.params.id)
+                                    Topo.scene.remove(x) 
+                                    Topo.deleteFont(x.params.id)
+                                }
+                            }
+                        })
+                        Topo.deleteselectBox() 
+                        
+                    }
+                    if(type){
+                        setTimeout(x=>{
+                            Topo.biuParent(Topo.save())
+                        },210)
                     }
                     
                 }, false);
+            },
+            //删除选中狂
+            deleteselectBox(){ 
+                Topo.scene.children.forEach(x=>{
+                    if(x.params){ 
+                        if(x.params.type=="selectBox"){
+                            Topo.scene.remove(x)      
+                        }
+                    }
+                })
+            },
+            deleteFont(id){
+                //删除文字
+                Topo.scene.children.forEach(x=>{
+                    if(x.params){ 
+                        if(x.params.type=="font"&&x.params.id==id){
+                            Topo.scene.remove(x)      
+                        }
+                    }
+                })
             },
             biuParent(msg) {
                 //给父元素发送信息
@@ -475,9 +590,15 @@
             },
             save(){
                 //保存所有的节点
-                let links = Topo.getLinks().map(link=>link.params);
+                let links = Topo.getLinks().map(link=>{
+                    return {
+                        source:link.params.source,
+                        target:link.params.target
+                }
+                });
                 let nodes = Topo.getNodes().map(node=>{
                     return {
+                        id:node.params.id,
                         ip: node.params.ip||'',
                         dep:node.params.dep||'',
                         type: node.params.type1||'',
