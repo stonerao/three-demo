@@ -141,7 +141,7 @@
                     mesh1.params={
                         id:id,
                         type:"font"
-                    }
+                    } 
                     Topo.scene.add(mesh1);
 
                 });
@@ -337,7 +337,8 @@
             },
             getNodeTop(id, arr) {
                 //找到节点上级一直到路由器 
-                let srcNode = 126
+                let srcNode = Topo.nexus.nodes.filter(x=>x.type==4)[0]
+                // let srcNode = 126
                 let links = Topo.nexus.links;
                 let link = links.filter(x => x.target == id)[0]
 
@@ -412,7 +413,10 @@
                             obj: "./obj/"+data.typeName+".obj",
                             ...data
                         }) 
-                        let parentP = Topo.getNode(data.parent).position; 
+                        let parentP
+                        if(Topo.getNode(data.parent)){
+                             parentP = Topo.getNode(data.parent).position; 
+                        }
                         if(data.type==6){
                             //防火墙 
                             let lnks = Topo.getLinks()
@@ -436,23 +440,25 @@
                                 target:data.next
                             }
                             setTimeout(x=>{
-                                Topo.addIdLink(data.parent,data.id)
-                                Topo.addIdLink(data.id,data.next)
+                                Topo.addIdLink(data.id,data.parent)
+                                Topo.addIdLink(data.next,data.id)
                             },200)
                         }
                         else{
-                            Topo.addLink({
-                                x:{
-                                    x:data.x,
-                                    y:data.y,
-                                    z:data.z,
-                                    id:data.id
-                                },
-                                y:{
-                                ...parentP,
-                                id:data.parent
-                                }
-                            })
+                            if(parentP){
+                                Topo.addLink({
+                                    x:{
+                                        x:data.x,
+                                        y:data.y,
+                                        z:data.z,
+                                        id:data.id
+                                    },
+                                    y:{
+                                    ...parentP,
+                                    id:data.parent
+                                    }
+                                })
+                            }
                         } 
 
                     }else 
@@ -502,15 +508,13 @@
                         }) 
                         nodes.forEach(x=>{
                             if(x.params){ 
-                                if(arr.indexOf(x.params.id)!=-1){
-                                    console.log(x.params.id)
-                                    Topo.scene.remove(x) 
+                                if(arr.indexOf(x.params.id)!=-1){ 
+                                    Topo.scene.remove(x)  
                                     Topo.deleteFont(x.params.id)
                                 }
                             }
                         })
-                        Topo.deleteselectBox() 
-                        
+                        Topo.deleteselectBox()  
                     }
                     if(type){
                         setTimeout(x=>{
@@ -532,13 +536,21 @@
             },
             deleteFont(id){
                 //删除文字
-                Topo.scene.children.forEach(x=>{
+                console.log(id)
+                let nodes = Topo.scene.children.filter(x=>{
+                    if(x.params){ 
+                        return x.params.type=="font"&&x.params.id==id    
+                    } 
+                })
+                Topo.scene.remove(...nodes) 
+                /* Topo.scene.children.forEach(x=>{
                     if(x.params){ 
                         if(x.params.type=="font"&&x.params.id==id){
                             Topo.scene.remove(x)      
                         }
+                    
                     }
-                })
+                }) */
             },
             biuParent(msg) {
                 //给父元素发送信息
@@ -636,6 +648,20 @@
                     Topo.Selectnode.position.z = params.z;
                 }
             },
+            moveSwitch(node){
+                let id = node.params.id;
+                let nodes = Topo.scene.children.filter(x=>{
+                    if(x.params){ 
+                        return x.params.type=="font"&&x.params.id==id    
+                    } 
+                })
+                nodes.forEach(n=>{
+                    n.position.x=node.position.x
+                    n.position.y=node.position.y+15
+                    n.position.z=node.position.z
+                })
+
+            },
             load() {
                 Topo.nexus = nexus;
                 Topo.initCamea()
@@ -655,6 +681,7 @@
                     if(Topo.currSelectnode){ 
                         Topo.currSelectnode.position.x = parseInt(num)
                         Topo.nodeChangeLink(Topo.currSelectnode) 
+                        Topo.moveSwitch(Topo.currSelectnode)
                         Topo.selectBoxBackground({
                             ...Topo.currSelectnode.position
                         })
@@ -677,7 +704,9 @@
                     })
                 }, 2000)
                 let quitBtn = document.getElementById("quit");
-                quitBtn.onclick=function(){  
+                let topBtn = document.getElementById("moveTop");
+                let bottomBtn = document.getElementById("moveBottom");
+                function quitSelect(){
                     Topo.Selectnode.material.dispose();
                     Topo.Selectnode.geometry.dispose(); 
                     Topo.scene.remove(Topo.Selectnode) 
@@ -686,6 +715,42 @@
                     Topo.Selectnode= null; 
                     Topo.inputX.value = ""
                     Topo.inputY.value = ""
+                }
+                quitBtn.onclick=function(){ 
+                    if(!Topo.Selectnode){
+                        return
+                    } 
+                    quitSelect()
+                }
+                function move(state){
+                    if(Topo.Selectnode){
+                        Topo.deleteselectBox() 
+                    } 
+                    let type = Topo.currSelectnode.params.type1;
+                    let nodes = Topo.getNodes().filter(n=>n.params.type1==1||n.params.type1==2) 
+                    if(type==1||type==2){ 
+                        nodes.forEach(x=>{ 
+                            if(state){
+                                //抬高
+                                x.position.y+=1
+                            }else{
+                                //降低
+                                x.position.y-=1 
+                            } 
+                            Topo.nodeChangeLink(x)
+                            Topo.selectBoxBackground({
+                                ...x.position
+                            })
+                        })
+                    }else if(type==3){
+                        //找到和当前同一高度的交换机
+                    }
+                }
+                topBtn.onclick=function(){  
+                    move(true)
+                }
+                bottomBtn.onclick=function(){  
+                    move(false)
                 }
             },
         }
@@ -698,9 +763,14 @@
 <body>
     <canvas id="mainCanvas" width="1600px" height="800px" style="position: absolute;left:0;top: 0;"></canvas>
     <div class="inputPositiobn">
-        <input type="number" id="positionX">
-        <input type="number" id="positionY">
-        <button id="quit">quit</button>
+        <ul>
+            <li><input type="number" id="positionX"></li>
+            <li><input type="number" id="positionY"></li>
+            <li></li>
+            <li><button id="moveTop">整体抬高</button></li>
+            <li><button id="moveBottom">整体降低</button></li>
+            <li><button id="quit">quit</button></li>
+        </ul>
     </div>
     <div id="stats" style="position:absolute;left:0;top:0;"></div>
 </body>
