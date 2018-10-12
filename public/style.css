@@ -48,15 +48,77 @@ html {
   bottom: 10px;
   right: 10px;
 }
-li{
-  list-style:none;
-}
-.inputPositiobn input {  
-  height:20px;  
-}
-.inputPositiobn button {  
-    width:100%;
-    border:0;
-    height:20px;
 
+.inputPositiobn li {
+  background-image: url('../assets/list.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: center;
+  padding: 0 15px;
+  margin-top: 5px;
+  color: #fff;
+}
+
+li {
+  list-style: none;
+
+}
+
+.inputPositiobn input {
+  height: 20px;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+}
+
+.inputPositiobn button {
+  width: 100%;
+  border: 0;
+  height: 20px;
+  outline: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+
+}
+input[type="number"]{
+  -moz-appearance: textfield;
+  -webkit-appearance: none;
+}
+input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+.topoShow {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  user-select: none;
+}
+
+.positionIocn {
+  position: relative;
+  display: inline-block;
+  height: 16px;
+  top: 2px;
+  width: 5px;
+  margin-right: 5px;
+}
+
+.inputPositiobn span {
+  font-weight: 100;
+  font-size: 13px;
+}
+
+.iconX {
+  background: #cd1f25
+}
+
+.iconY {
+  background: #549459
+}
+
+.iconZ {
+  background: #215ac6
 }

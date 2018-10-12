@@ -1148,6 +1148,10 @@ const list = [{
     "id": 126
 }]
 let nexus = {
+    links:[],
+    nodes:[]
+}
+let nexus1 = {
     nodes: list,
     links: [{
         "target": 1,
@@ -1526,4 +1530,5 @@ let nexus = {
         "source": 126
     }]
 }
-console.log(nexus)
+
+ 
