@@ -68,7 +68,10 @@
                 Topo.camera.position.set(195, 200, 430);
                 Topo.camera.lookAt(new THREE.Vector3(0, 0, 0));
                 Topo.scene.add(Topo.camera);
-
+                console.log(Topo.camera)
+            },
+            saveCamea(){
+                
             },
             renders() {
                 //更新   
@@ -228,8 +231,7 @@
                 });
 
             },
-            initData(data) {
-                console.log(data)
+            initData(data) { 
                 //数据 
                 Topo.nexus=data;
                 Topo.Objlength = 0;
@@ -385,8 +387,7 @@
                 }, 200)
             },
             addIdLink(x, y) {
-                //根据ID添加
-                console.log(Topo.getNode(x))
+                //根据ID添加 
                 let xnode = Topo.getNode(x).position;
                 let ynode = Topo.getNode(y).position;
                 Topo.addLink({
@@ -401,6 +402,7 @@
                 })
             },
             selectNodeEvent(data){
+                
                 //选中节点
                 Topo.currNode = data;
                 Topo.currSelectnode = Topo.scene.children.filter(x => {
@@ -432,19 +434,24 @@
                     /**
                      * @param type 1获取到当前 2添加一个node
                      * 
-                    */
-                    if (type == 2) {
-                        console.log(data)
+                    */ 
+                    if (type == 2) {  
+                        let parentP = null;
+                        if (Topo.getNode(data.parent)) { 
+                            parentP = Topo.getNode(data.parent).position;
+                            if(data.type==5||data.type==6){
+                                
+                            }else{
+                                data.x = parentP.x
+                                data.z = parentP.z
+                            }
+                        }  
                         //从主页面接受过来的参数 
                         Topo.initObj({
                             mtl: "./obj/" + data.typeName + ".mtl",
                             obj: "./obj/" + data.typeName + ".obj",
                             ...data
                         }) 
-                        let parentP
-                        if (Topo.getNode(data.parent)) {
-                            parentP = Topo.getNode(data.parent).position;
-                        }
                         if (data.type == 6) {
                             //防火墙 
                             let lnks = Topo.getLinks()
@@ -489,8 +496,12 @@
                             }
                         }
 
-                    } else if (type == 1) {
-                            Topo.selectNodeEvent(data) 
+                    } else if (type == 1) { 
+                        Topo.selectNodeEvent(data) 
+                        Topo.biuParent({
+                            code:2,
+                            data:data.id
+                        })
                     } else if (type == 3) {
                         //找到当前所有的下级 以及和下级有关的连线
                         let arr = []
@@ -527,8 +538,7 @@
                         })
                         Topo.deleteselectBox()
                     }else if(type==4){
-                        //加载数据
-                        console.log(data)
+                        //加载数据 
                         Topo.initData(data)
                     }else if(type==5){
                         Topo.biuParent({
@@ -541,6 +551,12 @@
                        node.params.resp=data.resp;
                        node.params.dept=data.dept;
                        node.params.ip=data.ip; 
+                    }else if(type==7){ 
+                        Topo.selectNodeEvent(data) 
+                        Topo.biuParent({
+                            code:2,
+                            data:data.id
+                        })
                     }
                     if (type) {
                         setTimeout(x => {
@@ -625,7 +641,15 @@
                         }
                         
                         if(obj.parent.params.type=="node"){
-                            Topo.selectNodeEvent(obj.parent.params)
+                            Topo.selectNodeEvent(obj.parent.params);
+                            Topo.biuParent({
+                                code:2,
+                                data:obj.parent.params.id
+                            })
+                            /* Topo.biuParent({
+                                code:2,
+                                data:obj.parent.params.id
+                            }) */
                         }
                     }
                     
@@ -662,8 +686,7 @@
                         source: link.params.source,
                         target: link.params.target
                     }
-                });
-                console.log(Topo.getNodes())
+                }); 
                 let nodes = Topo.getNodes().map(node => {
                     return {
                         id: node.params.id,
@@ -675,6 +698,7 @@
                         ...node.position
                     }
                 });
+               
                 return {
                     nodes: nodes,
                     links: links
@@ -682,6 +706,7 @@
             },
             selectBoxBackground(params) {
                 //作为选中盒子的背景
+                console.log(params)
                 if (!Topo.Selectnode) {
                     //如果没有盒子 
                     var geometry = new THREE.BoxGeometry(12, 12, 12);
@@ -756,6 +781,7 @@
                 })
 
             },
+
             load() {
                 Topo.nexus = nexus;
                 Topo.initCamea()
@@ -799,7 +825,7 @@
                         dst: "10.101.12.229"
                     })
                 }, 2000) */
-                let quitBtn = document.getElementById("quit");
+                /* let quitBtn = document.getElementById("quit");
                 let topBtn = document.getElementById("moveTop");
                 let bottomBtn = document.getElementById("moveBottom");
                 function quitSelect() {
@@ -848,7 +874,7 @@
                 }
                 bottomBtn.onclick = function () {
                     move(false)
-                }
+                } */
                 //告诉主页面我已加载完毕 可以对接数据
                 Topo.biuParent({
                     code:0
@@ -857,7 +883,17 @@
         }
         window.onload = function () {
             Topo.load()
-            
+            let toggle= document.getElementById("toogle") 
+            toggle.onclick=function(){
+                let list = document.querySelectorAll(".NodesPosition")[0]
+                if(list.style.height=="0px"){
+                    list.style.height="75px"
+                    toggle.src = "./assets/bottom.png"
+                }else{
+                    toggle.src = "./assets/top.png"
+                    list.style.height=0+"px"
+                } 
+            }
         }
     </script>
 </head>
@@ -866,8 +902,9 @@
     <canvas id="mainCanvas" width="1600px" height="800px" style="position: absolute;left:0;top: 0;"></canvas>
     <img src="./assets/show.png" alt="" class="topoShow">
     <div class="inputPositiobn">
-        <ul>
-            <li> 
+        <ul class="NodesPosition" style="height:75px">
+            <img src="./assets/bottom.png" alt="" class="toggle" id="toogle">
+            <li>
                 <span class="positionIocn iconX"></span>
                 <span>X：</span>
                 <input type="number" id="positionX">
@@ -877,11 +914,11 @@
                 <span>Y：</span>
                 <input type="number" id="positionY">
             </li>
-            <li><span class="positionIocn iconZ"></span> 
+            <li><span class="positionIocn iconZ"></span>
                 <span>Z：</span>
                 <input type="number" id="positionZ">
             </li>
-            <li> 
+            <!--  <li>
                 <button id="moveTop">整体抬高</button>
             </li>
             <li>
@@ -889,7 +926,7 @@
             </li>
             <li>
                 <button id="quit">quit</button>
-            </li>
+            </li> -->
         </ul>
     </div>
     <div id="stats" style="position:absolute;left:0;top:0;"></div>

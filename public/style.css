@@ -82,14 +82,17 @@ li {
   color: #fff;
 
 }
-input[type="number"]{
+
+input[type="number"] {
   -moz-appearance: textfield;
   -webkit-appearance: none;
 }
+
 input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-    }
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
 .topoShow {
   position: absolute;
   top: 5px;
@@ -121,4 +124,18 @@ input::-webkit-outer-spin-button,
 
 .iconZ {
   background: #215ac6
+}
+
+.NodesPosition {
+  position: relative;
+  padding-top: 13px;
+  transition:all .2s;
+}
+
+.toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height:13px;
+  cursor: pointer;
 }
