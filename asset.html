@@ -505,31 +505,48 @@
                             data:data.id
                         })
                     } else if (type == 3) {
-                        //找到当前所有的下级 以及和下级有关的连线
+                        //找到当前所有的下级 以及和下级有关的连线 
                         let arr = []
                         let nodes = Topo.getNodes();
                         let links = Topo.getLinks();
-                        function getNodeid(id) {
-                            arr.push(id)
-                            let link1 = links.filter(l => l.params.source == id)
-                            let line = link1.map(l => l.params.target)
-                            link1.forEach(x => {
-                                Topo.scene.remove(x)
+                        if(data.type==6){
+                            //找到所有的下级
+                            let targets = links.filter(x=>x.params.source==data.id).map(x=>x.params.target)
+                            let sources = links.filter(x=>x.params.target==data.id).map(x=>x.params.source)[0]
+                            targets.forEach(l=>{
+                                Topo.addIdLink(l,sources)
                             })
-                            if (line.length != 0) {
-                                line.forEach(x => {
-                                    getNodeid(x)
+                            arr.push(data.id)
+                            //删除连接到的
+                            links.forEach(x => {
+                                if (x.params.target == data.id||x.params.source == data.id) {
+                                    Topo.scene.remove(x)
+                                }
+                            })
+                        }else{
+                            function getNodeid(id) {
+                                arr.push(id)
+                                let link1 = links.filter(l => l.params.source == id)
+                                let line = link1.map(l => l.params.target)
+                                link1.forEach(x => {
+                                    Topo.scene.remove(x)
                                 })
+                                if (line.length != 0) {
+                                    line.forEach(x => {
+                                        getNodeid(x)
+                                    })
+                                }
                             }
-                        }
-                        getNodeid(data.id)
-                        links = Topo.getLinks();
-                        //删除连接到的
-                        links.forEach(x => {
-                            if (x.params.target == data.id) {
-                                Topo.scene.remove(x)
-                            }
-                        })
+                            getNodeid(data.id)
+                            links = Topo.getLinks();
+                            //删除连接到的
+                            links.forEach(x => {
+                                if (x.params.target == data.id) {
+                                    Topo.scene.remove(x)
+                                }
+                            })
+                        } 
+                       
                         nodes.forEach(x => {
                             if (x.params) {
                                 if (arr.indexOf(x.params.id) != -1) {
@@ -634,10 +651,9 @@
                     raycaster.setFromCamera(mouse, Topo.camera);
                     var intersects = raycaster.intersectObjects([Topo.scene], true); 
                     if(intersects.length>0){ 
-                        let obj = intersects[0].object 
-                        
+                        let obj = intersects[0].object  
                         if(obj.type!="Mesh"){
-                            returns
+                            return
                         }   
                         if(event.button==2){   
                             if(obj.params){
@@ -654,6 +670,10 @@
                                     }) 
                                     return
                                 }
+                            }
+                            if(!obj.parent.params)
+                            {
+                                return
                             }
                             Topo.biuParent({
                                 code:3,
