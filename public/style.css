@@ -134,7 +134,7 @@ input::-webkit-inner-spin-button {
 
 .toggle {
   position: absolute;
-  top: 0;
+  top:6px;
   right: 0;
   height:13px;
   cursor: pointer;

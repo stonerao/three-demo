@@ -30,7 +30,7 @@ var models = {
         mesh: null
     },
 };
-const list = [{
+/* const list = [{
     "x": -150,
     "y": 5,
     "z": -100,
@@ -1148,8 +1148,8 @@ const list = [{
     "id": 126
 }]
 let nexus = {
-    links:[],
-    nodes:[]
+    links: [],
+    nodes: []
 }
 let nexus1 = {
     nodes: list,
@@ -1530,5 +1530,4 @@ let nexus1 = {
         "source": 126
     }]
 }
-
- 
+  */

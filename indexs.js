@@ -21,7 +21,7 @@ function onWindowResize() {
    canvas.width = width
    canvas.height = height */
   camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix(); 
+  camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 window.addEventListener('resize', onWindowResize, false);
@@ -202,15 +202,15 @@ function inigSign(params) {
   let height = 15
   var materials = new THREE.MeshLambertMaterial({
     color: 0xffcf43,
-    lightMapIntensity:1
+    lightMapIntensity: 1
   });
   var loader = new THREE.FontLoader();
   //读取字体JSON文件 创建字体
   loader.load('./lib/helvetiker_regular.typeface.json', function (font) {
     let textFont = new THREE.TextGeometry(name, {
       font: font,
-      size:6,
-      height:1,
+      size: 6,
+      height: 1,
     })
     textFont.center()
     var mesh1 = new THREE.Mesh(textFont, materials);
@@ -573,7 +573,7 @@ function load() {
   initLight()
   initControls()
   // initObj()
-  list.forEach((x, i) => { 
+  list.forEach((x, i) => {
     x.x = x.x - 50
     if (x.type == 1) {
       //主机
@@ -646,7 +646,7 @@ window.addEventListener('message', function (event) {
     let src = eData.src_ip;
   }
   // this.topo.firLink({ src: "10.101.12.29", tar: tar });
-  if (eData.src_ip && tar) { 
+  if (eData.src_ip && tar) {
     attackEvent({
       src: eData.src_ip,
       dst: tar
@@ -658,4 +658,3 @@ window.addEventListener('message', function (event) {
     // this.topo.removeActiveLink()
   }
 }, false);
- 

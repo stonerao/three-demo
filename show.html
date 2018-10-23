@@ -70,31 +70,38 @@
                 Topo.camera.position.set(195, 200, 430);
                 Topo.camera.lookAt(new THREE.Vector3(0, 0, 0));
                 Topo.scene.add(Topo.camera);
-               
+
             },
-            saveCamea(){ 
-                const  {x,y,z} = Topo.camera.position;
-                const  {_x,_y,_z} = Topo.camera.rotation;
-                let params =  {
-                    position:{ 
-                        x:parseInt(x),
-                        y:parseInt(y),
-                        z:parseInt(z),
+            saveCamea() {
+                const {
+                    x,
+                    y,
+                    z
+                } = Topo.camera.position;
+                const {
+                    _x,
+                    _y,
+                    _z
+                } = Topo.camera.rotation;
+                let params = {
+                    position: {
+                        x: parseInt(x),
+                        y: parseInt(y),
+                        z: parseInt(z),
                     },
-                    rotation:{
-                        x:_x,
-                        y:_y,
-                        z:_z,
+                    rotation: {
+                        x: _x,
+                        y: _y,
+                        z: _z,
                     }
-                } 
-                console.log(params)
+                }
                 return params
             },
             renders() {
                 //更新   
-                Topo.stats.update()
+                // Topo.stats.update()
                 Topo.renderer.render(Topo.scene, Topo.camera);
-                requestAnimationFrame(Topo.renders); 
+                requestAnimationFrame(Topo.renders);
             },
             initControls() {
                 //创建鼠标事件
@@ -219,7 +226,7 @@
                     objLoader.load(params.obj, function (object) {
                         object.position.y = params.y
                         object.position.x = params.x
-                        object.position.z = params.z 
+                        object.position.z = params.z
                         object.params = {
                             id: params.id,
                             type: "node",
@@ -227,8 +234,8 @@
                             dep: params.dep,
                             typeName: params.typeName,
                             type1: params.type,
-                            resp:params.resp,
-                            name:params.name
+                            resp: params.resp,
+                            name: params.name
                         }
                         Topo.scene.add(object)
                         Topo.Objlength++
@@ -249,9 +256,9 @@
                 });
 
             },
-            initData(data) { 
+            initData(data) {
                 //数据 
-                Topo.nexus=data;
+                Topo.nexus = data;
                 Topo.Objlength = 0;
                 Topo.nexus.nodes.forEach((x, i) => {
                     if (x.type == 1) {
@@ -297,9 +304,9 @@
                         }
                         Topo.initObj(x)
                     }
-                    if(data.config){
+                    if (data.config) {
                         //如果有相机
-                        let camea = data.config 
+                        let camea = data.config
                         console.log(data)
                         Topo.camera.position.x = camea.position.x
                         Topo.camera.position.y = camea.position.y
@@ -429,7 +436,7 @@
                     }
                 })
             },
-            selectNodeEvent(data){ 
+            selectNodeEvent(data) {
                 //选中节点\
                 Topo.deleteselectBox()
                 Topo.currNode = data;
@@ -442,18 +449,18 @@
                         }
                     }
                 })[0]
-                if (Topo.currSelectnode !== undefined) { 
+                if (Topo.currSelectnode !== undefined) {
                     Topo.inputX.value = Topo.currSelectnode.position.x
                     Topo.inputZ.value = Topo.currSelectnode.position.z
                     Topo.inputY.value = Topo.currSelectnode.position.y
                     Topo.nodeChangeLink(Topo.currSelectnode)
                     Topo.selectBoxBackground({
                         ...Topo.currSelectnode.position,
-                        id:Topo.currSelectnode.params.id
+                        id: Topo.currSelectnode.params.id
                     })
                 }
             },
-            selectNodeEvent1(data){ 
+            selectNodeEvent1(data) {
                 //选中节点  
                 Topo.currSelectnode1 = Topo.scene.children.filter(x => {
                     if (!x.params) {
@@ -464,12 +471,42 @@
                         }
                     }
                 })[0]
-                if (Topo.currSelectnode1 !== undefined) {   
+                if (Topo.currSelectnode1 !== undefined) {
                     Topo.selectBoxBackground1({
                         ...Topo.currSelectnode1.position,
-                        id:Topo.currSelectnode1.params.id
+                        id: Topo.currSelectnode1.params.id
                     })
                 }
+            },
+            activeNode(ip, bl) {
+                let node = Topo.scene.children.filter(x => x.params).filter(x => x.params.type == "node" && x.params.ip ==
+                    ip)[0]
+                    console.log(node)
+                var geometry = new THREE.BoxGeometry(12, 12, 12);
+                var material = new THREE.MeshBasicMaterial({
+                    color: bl ? 0xff0000 : 0x00ff00,
+                    wireframe: true,
+                    wireframeLinecap: "butt",
+                    skinning: true,
+                    // alphaMap:0.1
+                });
+                var cube = new THREE.Mesh(geometry, material);
+                let position = node.position;
+                cube.position.x = position.x;
+                cube.position.y = position.y + 1;
+                cube.position.z = position.z;
+
+                let time = setInterval(x => {
+                    // cube.rotation.x += 0.5
+                    // cube.rotation.z += 0.5
+                    cube.rotation.y += 0.5
+                }, 100)
+                Topo.scene.add(cube);
+                setTimeout(x => {
+                    clearInterval(time)
+                    Topo.scene.remove(cube)
+                }, 5000)
+
             },
             postMessage(obj) {
                 //传递对象过去
@@ -477,168 +514,37 @@
                 window.addEventListener('message', function (event) {
                     //接受父元素信息
                     let datas = event.data;
-                    let { type, data } = datas;
+                    let {
+                        type,
+                        data
+                    } = datas;
                     /**
                      * @param type 
-                     * 1:获取到当前 
-                     * 2:添加一个node
-                     * 3:找到当前所有的下级 以及和下级有关的连线 
-                     * 4:加载数据
-                     * 5:返回保存的数据
-                     * 6:编辑
-                     * 8:选择添加的防火墙节点
-                    */ 
-                    if (type == 2) {  
-                        console.log(data)
-                        let parentP = null;
-                        if (Topo.getNode(data.parent)) { 
-                            parentP = Topo.getNode(data.parent).position;
-                            if(data.type==5||data.type==6){
-                                
-                            }else{
-                                data.x = parentP.x
-                                data.z = parentP.z
-                            }
-                        }  
-                        //从主页面接受过来的参数 
-                        Topo.initObj({
-                            mtl: "./obj/" + data.typeName + ".mtl",
-                            obj: "./obj/" + data.typeName + ".obj",
-                            ...data
-                        }) 
-                        if (data.type == 6) {
-                            //防火墙 
-                            let lnks = Topo.getLinks()
-                            lnks.forEach((l, i) => {
-                                if (l.params.source == data.parent) {
-
-                                }
-                                if (l.params.source == data.parent && l.params.target == data.next) {
-                                    // Nexus.links.splice(i,1) 
-                                    Topo.scene.remove(l)
-                                    return
-                                }
+                     * 1:连线
+                     * 2:获取所有数据  
+                     */
+                    if (type == 1) {
+                        if (data.type == 1) {
+                            let src = data.src_ip;
+                        }
+                        if (data.src_ip && data.tar_ip) {
+                            console.log({
+                                src: data.src_ip,
+                                dst: data.tar_ip
                             })
-                            //然后添加两根连线
-                            let link1 = {
-                                source: data.parent,
-                                target: data.id
-                            }
-                            let link2 = {
-                                source: data.id,
-                                target: data.next
-                            }
-                            setTimeout(x => {
-                                Topo.addIdLink(data.id, data.parent)
-                                Topo.addIdLink(data.next, data.id)
-                            }, 200)
+                            Topo.attackEvent({
+                                src: data.src_ip,
+                                dst: data.tar_ip
+                            })
                         }
                         else {
-                            if (parentP&&data.type!==4) {
-                                Topo.addLink({
-                                    x: {
-                                        x: data.x,
-                                        y: data.y,
-                                        z: data.z,
-                                        id: data.id
-                                    },
-                                    y: {
-                                        ...parentP,
-                                        id: data.parent
-                                    }
-                                })
-                            }
-                        }
-
-                    } else if (type == 1) {   
-                        Topo.selectNodeEvent(data) 
-                        Topo.biuParent({
-                            code:2,
-                            data:data.id
-                        })
-                    } else if (type == 3) {
-                        //找到当前所有的下级 以及和下级有关的连线 
-                        let arr = []
-                        let nodes = Topo.getNodes();
-                        let links = Topo.getLinks();
-                        if(data.type==6){
-                            //找到所有的下级
-                            let targets = links.filter(x=>x.params.source==data.id).map(x=>x.params.target)
-                            let sources = links.filter(x=>x.params.target==data.id).map(x=>x.params.source)[0]
-                            targets.forEach(l=>{
-                                Topo.addIdLink(l,sources)
-                            })
-                            arr.push(data.id)
-                            //删除连接到的
-                            links.forEach(x => {
-                                if (x.params.target == data.id||x.params.source == data.id) {
-                                    Topo.scene.remove(x)
-                                }
-                            })
-                        }else{
-                            function getNodeid(id) {
-                                arr.push(id)
-                                let link1 = links.filter(l => l.params.source == id)
-                                let line = link1.map(l => l.params.target)
-                                link1.forEach(x => {
-                                    Topo.scene.remove(x)
-                                })
-                                if (line.length != 0) {
-                                    line.forEach(x => {
-                                        getNodeid(x)
-                                    })
-                                }
-                            }
-                            getNodeid(data.id)
-                            links = Topo.getLinks();
-                            //删除连接到的
-                            links.forEach(x => {
-                                if (x.params.target == data.id) {
-                                    Topo.scene.remove(x)
-                                }
-                            })
-                        } 
-                       
-                        nodes.forEach(x => {
-                            if (x.params) {
-                                if (arr.indexOf(x.params.id) != -1) {
-                                    Topo.scene.remove(x)
-                                    Topo.deleteFont(x.params.id)
-                                }
-                            }
-                        })
-                        Topo.deleteselectBox()
-                    }else if(type==4){
-                        //加载数据  
+                            //攻击
+                            Topo.activeNode(data.tar_ip || data.src_ip, true) 
+                        }  
+                    } else if (type == 2) {
                         Topo.initData(data)
-                    }else if(type==5){
-                        Topo.biuParent({
-                            code:1,
-                            data:Topo.save()
-                        })
-                    }else if(type==6){
-                       let nodes = Topo.getNodes();
-                       let node = nodes.filter(x=>x.params.id==data.id)[0]
-                       node.params.resp=data.resp;
-                       node.params.dept=data.dept;
-                       node.params.ip=data.ip; 
-                       node.params.name=data.name; 
-                    }else if(type==7){ 
-                        Topo.selectNodeEvent(data) 
-                        Topo.biuParent({
-                            code:2,
-                            data:data.id
-                        })
-                    }else if(type==8){ 
-                        Topo.selectNodeEvent1(data)  
-                    }else if(type==9){ 
-                        Topo.deleteselectBox1()  
                     }
-                    if (type) {
-                        setTimeout(x => {
-                            Topo.biuParent(Topo.save())
-                        }, 300)
-                    }
+
                 }, false);
             },
             //删除选中狂
@@ -696,72 +602,71 @@
                     }
                 })
             },
-            raycasterEvent(){
+            raycasterEvent() {
                 //点击屏幕 获取点击的信息
                 let raycaster = Topo.raycaster;
                 let mouse = new THREE.Vector2();
                 window.addEventListener('mouseup', onTouchMove);
+
                 function onTouchMove(event) {
                     Topo.biuParent({
-                        code:4
-                    }) 
-                    var x, y; 
-                    if (event.changedTouches) { 
+                        code: 4
+                    })
+                    var x, y;
+                    if (event.changedTouches) {
                         x = event.changedTouches[0].pageX;
                         y = event.changedTouches[0].pageY;
 
-                    } else { 
+                    } else {
                         x = event.clientX;
-                        y = event.clientY; 
-                    } 
+                        y = event.clientY;
+                    }
                     mouse.x = (x / window.innerWidth) * 2 - 1;
                     mouse.y = -(y / window.innerHeight) * 2 + 1;
                     raycaster.setFromCamera(mouse, Topo.camera);
-                    var intersects = raycaster.intersectObjects([Topo.scene], true); 
-                    if(intersects.length>0){ 
-                        let obj = intersects[0].object  
-                        if(obj.type!="Mesh"){
+                    var intersects = raycaster.intersectObjects([Topo.scene], true);
+                    if (intersects.length > 0) {
+                        let obj = intersects[0].object
+                        if (obj.type != "Mesh") {
                             return
-                        }   
-                        if(event.button==2){    
-                            if(obj.params){
-                                if(obj.params.type=="selectBox"){ 
-                                    let nos = Topo.getNode(Topo.currNode.id)  
+                        }
+                        if (event.button == 2) {
+                            if (obj.params) {
+                                if (obj.params.type == "selectBox") {
+                                    let nos = Topo.getNode(Topo.currNode.id)
                                     Topo.biuParent({
-                                        code:3,
-                                        data:{
-                                            left:event.layerX,
-                                            top:event.layerY,
+                                        code: 3,
+                                        data: {
+                                            left: event.layerX,
+                                            top: event.layerY,
                                             ...nos.params,
                                             ...nos.position
                                         }
-                                    }) 
+                                    })
                                     return
                                 }
                             }
-                            if(!obj.parent.params)
-                            {
+                            if (!obj.parent.params) {
                                 return
                             }
                             Topo.biuParent({
-                                code:3,
-                                data:{
-                                    left:event.layerX,
-                                    top:event.layerY,
+                                code: 3,
+                                data: {
+                                    left: event.layerX,
+                                    top: event.layerY,
                                     ...obj.parent.params,
                                     ...obj.parent.position
                                 }
-                            }) 
-                        }else{  
-                            if(!obj.parent.params)
-                            {
+                            })
+                        } else {
+                            if (!obj.parent.params) {
                                 return
                             }
-                            if(obj.parent.params.type=="node"){ 
+                            if (obj.parent.params.type == "node") {
                                 Topo.selectNodeEvent(obj.parent.params);
                                 Topo.biuParent({
-                                    code:2,
-                                    data:obj.parent.params.id
+                                    code: 2,
+                                    data: obj.parent.params.id
                                 })
                                 /* Topo.biuParent({
                                     code:2,
@@ -770,7 +675,7 @@
                             }
                         }
                     }
-                    
+
                 }
             },
             nodeChangeLink(node) {
@@ -804,7 +709,7 @@
                         source: link.params.source,
                         target: link.params.target
                     }
-                }); 
+                });
                 let nodes = Topo.getNodes().map(node => {
                     return {
                         id: node.params.id,
@@ -817,16 +722,16 @@
                         ...node.position
                     }
                 });
-                 
+
                 return {
                     nodes: nodes,
                     links: links,
-                    config:Topo.saveCamea()
+                    config: Topo.saveCamea()
                 }
             },
             selectBoxBackground(params) {
                 //作为选中盒子的背景
-                console.log(params) 
+                console.log(params)
                 if (!Topo.Selectnode) {
                     //如果没有盒子 
                     var geometry = new THREE.BoxGeometry(12, 12, 12);
@@ -877,23 +782,23 @@
                     Topo.Selectnode1.position.z = params.z;
                 }
             },
-            getParentNode(id){
+            getParentNode(id) {
                 //根据ID找到
                 let nodes = Topo.getNodes()
                 let links = Topo.getLinks();
-                let parentId = links.filter(l=>l.params.target==id).map(x=>x.params.source) 
-                return nodes.filter(n=>parentId.includes(n.params.id))
+                let parentId = links.filter(l => l.params.target == id).map(x => x.params.source)
+                return nodes.filter(n => parentId.includes(n.params.id))
             },
-            getChildrenNode(id){ 
+            getChildrenNode(id) {
                 //根据ID找到
                 let nodes = Topo.getNodes()
-                let links = Topo.getLinks(); 
-                let parentId = links.filter(l=>l.params.source==id).map(x=>x.params.target) 
-                return nodes.filter(n=>parentId.includes(n.params.id))
+                let links = Topo.getLinks();
+                let parentId = links.filter(l => l.params.source == id).map(x => x.params.target)
+                return nodes.filter(n => parentId.includes(n.params.id))
             },
-            moveSwitch(node) { 
+            moveSwitch(node) {
                 //如果当前是交换机
-                if(node.params.type1!==3){
+                if (node.params.type1 !== 3) {
                     return
                 }
                 let id = node.params.id;
@@ -912,17 +817,17 @@
                 //判断下一级是否交换机或者入侵检测
                 let parent = Topo.getParentNode(node.params.id)
                 let children = Topo.getChildrenNode(node.params.id)
-                parent.filter(n=>n.params.type1==6).forEach(n=>{
-                    let p = Topo.getParentNode(n.params.id)[0] 
+                parent.filter(n => n.params.type1 == 6).forEach(n => {
+                    let p = Topo.getParentNode(n.params.id)[0]
                     n.position.x = node.position.x + (p.position.x - node.position.x) / 3
                     n.position.y = node.position.y + (p.position.y - node.position.y) / 3
                     n.position.z = node.position.z + (p.position.z - node.position.z) / 3
                     Topo.nodeChangeLink(n)
                 })
-                children.filter(n=>n.params.type1==5).forEach(n=>{
-                    let p = Topo.getChildrenNode(n.params.id)[0] 
-                    n.position.x = node.position.x  
-                    n.position.y = node.position.y  
+                children.filter(n => n.params.type1 == 5).forEach(n => {
+                    let p = Topo.getChildrenNode(n.params.id)[0]
+                    n.position.x = node.position.x
+                    n.position.y = node.position.y
                     n.position.z = node.position.z + 50
                     Topo.nodeChangeLink(n)
                 })
@@ -931,8 +836,8 @@
 
             load() {
                 Topo.nexus = {
-                    nodes:[],
-                    links:[]
+                    nodes: [],
+                    links: []
                 };
                 Topo.initCamea()
                 Topo.onWindowResize()
@@ -940,147 +845,26 @@
                 Topo.initLight()
                 // Topo.initData()
                 Topo.initControls()
-                Topo.initStats()
+                // Topo.initStats()
                 Topo.renders()
                 Topo.postMessage()
                 window.addEventListener("resize", Topo.onWindowResize)
-                Topo.raycasterEvent()
-                Topo.inputX = document.getElementById("positionX")
-                Topo.inputY = document.getElementById("positionY")
-                Topo.inputZ = document.getElementById("positionZ")
-                function moveNodes(e,status){
-                    let num = e.target.value;
-                    if (Topo.currSelectnode) {
-                        Topo.currSelectnode.position[status]= parseInt(num)
-                        // Topo.currSelectnode.position.x = parseInt(num)
-                        Topo.nodeChangeLink(Topo.currSelectnode)
-                        // Topo.moveSwitch(Topo.currSelectnode)
-                        Topo.selectBoxBackground({
-                            ...Topo.currSelectnode.position,
-                            id:Topo.currSelectnode.params.id
-                        })
-                    }
-                }
-                Topo.inputX.oninput = function (e) {
-                    moveNodes(e,"x")
-                }
-                Topo.inputY.oninput = function (e) {
-                    moveNodes(e,"y")
-                }
-                Topo.inputZ.oninput = function (e) {
-                    moveNodes(e,"z")
-                }
-                /* setTimeout(() => {
-                    Topo.attackEvent({
-                        src: "10.101.20.112",
-                        dst: "10.101.12.229"
-                    })
-                }, 2000) */
-                /* let quitBtn = document.getElementById("quit");
-                let topBtn = document.getElementById("moveTop");
-                let bottomBtn = document.getElementById("moveBottom");
-                function quitSelect() {
-                    Topo.Selectnode.material.dispose();
-                    Topo.Selectnode.geometry.dispose();
-                    Topo.scene.remove(Topo.Selectnode)
-                    Topo.currNode = null;
-                    Topo.currSelectnode = null;
-                    Topo.Selectnode = null;
-                    Topo.inputX.value = ""
-                    Topo.inputY.value = ""
-                    Topo.inputZ.value = ""
-                }
-                quitBtn.onclick = function () {
-                    if (!Topo.Selectnode) {
-                        return
-                    }
-                    quitSelect()
-                }
-                function move(state) {
-                    if (Topo.Selectnode) {
-                        Topo.deleteselectBox()
-                    }
-                    let type = Topo.currSelectnode.params.type1;
-                    let nodes = Topo.getNodes().filter(n => n.params.type1 == 1 || n.params.type1 == 2)
-                    if (type == 1 || type == 2) {
-                        nodes.forEach(x => {
-                            if (state) {
-                                //抬高
-                                x.position.y += 1
-                            } else {
-                                //降低
-                                x.position.y -= 1
-                            }
-                            Topo.nodeChangeLink(x)
-                            Topo.selectBoxBackground({
-                                ...x.position
-                            })
-                        })
-                    } else if (type == 3) {
-                        //找到和当前同一高度的交换机
-                    }
-                }
-                topBtn.onclick = function () {
-                    move(true)
-                }
-                bottomBtn.onclick = function () {
-                    move(false)
-                } */
-                //告诉主页面我已加载完毕 可以对接数据
-                Topo.biuParent({
-                    code:0
-                })
+                // Topo.raycasterEvent() 
+
             },
         }
         window.onload = function () {
             Topo.load()
-            let toggle= document.getElementById("toogle") 
-            toggle.onclick=function(){
-                let list = document.querySelectorAll(".NodesPosition")[0]
-                if(list.style.height=="0px"){
-                    list.style.height="75px"
-                    toggle.src = "./assets/bottom.png"
-                }else{
-                    toggle.src = "./assets/top.png"
-                    list.style.height=0+"px"
-                } 
-            }
+
         }
     </script>
 </head>
 
 <body>
     <canvas id="mainCanvas" width="1600px" height="800px" style="position: absolute;left:0;top: 0;"></canvas>
-    <img src="./assets/show.png" alt="" class="topoShow">
-    <div class="inputPositiobn">
-        <ul class="NodesPosition" style="height:75px">
-            <img src="./assets/bottom.png" alt="" class="toggle" id="toogle">
-            <li>
-                <span class="positionIocn iconX"></span>
-                <span>X：</span>
-                <input type="number" id="positionX">
-            </li>
-            <li>
-                <span class="positionIocn iconY"></span>
-                <span>Y：</span>
-                <input type="number" id="positionY">
-            </li>
-            <li><span class="positionIocn iconZ"></span>
-                <span>Z：</span>
-                <input type="number" id="positionZ">
-            </li>
-            <!--  <li>
-                <button id="moveTop">整体抬高</button>
-            </li>
-            <li>
-                <button id="moveBottom">整体降低</button>
-            </li>
-            <li>
-                <button id="quit">quit</button>
-            </li> -->
-        </ul>
-    </div>
-    <div id="stats" style="position:absolute;left:0;top:0;"></div>
+    <!-- <img src="./assets/show.png" alt="" class="topoShow"> -->
+
+    <!-- <div id="stats" style="position:absolute;left:0;top:0;"></div> -->
 </body>
 
 </html>
