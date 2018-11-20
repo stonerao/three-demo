@@ -75,6 +75,13 @@
             saveCamea(){ 
                 const  {x,y,z} = Topo.camera.position;
                 const  {_x,_y,_z} = Topo.camera.rotation;
+                let list = document.querySelectorAll(".NodesPosition")[0]
+                let toggle = true
+                if(list.style.height=="0px"){
+                    toggle = false;
+                }else{
+                    toggle = true
+                } 
                 let params =  {
                     position:{ 
                         x:parseInt(x),
@@ -85,14 +92,14 @@
                         x:_x,
                         y:_y,
                         z:_z,
-                    }
-                } 
-                console.log(params)
+                    },
+                    toggle:toggle
+                }  
                 return params
             },
             renders() {
                 //更新   
-                Topo.stats.update()
+                // Topo.stats.update()
                 Topo.renderer.render(Topo.scene, Topo.camera);
                 requestAnimationFrame(Topo.renders); 
             },
@@ -296,23 +303,33 @@
                             ...models.firewall
                         }
                         Topo.initObj(x)
-                    }
-                    if(data.config){
-                        //如果有相机
-                        let camea = data.config 
-                        console.log(data)
-                        Topo.camera.position.x = camea.position.x
-                        Topo.camera.position.y = camea.position.y
-                        Topo.camera.position.z = camea.position.z
-                        Topo.camera.rotation.x = camea.rotation.x
-                        Topo.camera.rotation.y = camea.rotation.y
-                        Topo.camera.rotation.z = camea.rotation.z
-                    }
+                    } 
                     //需要title
                     if (x.name) {
                         Topo.inigSign(x)
                     }
                 })
+                if(data.config){
+                    //如果有相机
+                    let camea = data.config  
+                    Topo.camera.position.x = camea.position.x
+                    Topo.camera.position.y = camea.position.y
+                    Topo.camera.position.z = camea.position.z
+                    Topo.camera.rotation.x = camea.rotation.x
+                    Topo.camera.rotation.y = camea.rotation.y
+                    Topo.camera.rotation.z = camea.rotation.z 
+                    if(data.config.hasOwnProperty("toggle")){ 
+                        let toggle= document.getElementById("toogle")  
+                        let list = document.querySelectorAll(".NodesPosition")[0]
+                        if(data.config.toggle){
+                            list.style.height="75px"
+                            toggle.src = "./assets/bottom.png"
+                        }else{
+                            toggle.src = "./assets/top.png"
+                            list.style.height=0+"px"
+                        } 
+                    }
+                }
             },
             attackEvent({
                 dst,
@@ -488,8 +505,7 @@
                      * 6:编辑
                      * 8:选择添加的防火墙节点
                     */ 
-                    if (type == 2) {  
-                        console.log(data)
+                    if (type == 2) {   
                         let parentP = null;
                         if (Topo.getNode(data.parent)) { 
                             parentP = Topo.getNode(data.parent).position;
@@ -619,10 +635,11 @@
                     }else if(type==6){
                        let nodes = Topo.getNodes();
                        let node = nodes.filter(x=>x.params.id==data.id)[0]
+                       
                        node.params.resp=data.resp;
-                       node.params.dept=data.dept;
+                       node.params.dep=data.dept;
                        node.params.ip=data.ip; 
-                       node.params.name=data.name; 
+                       node.params.name=data.name;  
                     }else if(type==7){ 
                         Topo.selectNodeEvent(data) 
                         Topo.biuParent({
@@ -635,9 +652,12 @@
                         Topo.deleteselectBox1()  
                     }
                     if (type) {
-                        setTimeout(x => {
+                        setTimeout(x => { 
                             Topo.biuParent(Topo.save())
                         }, 300)
+                        setTimeout(x => { 
+                            Topo.biuParent(Topo.save())
+                        }, 1000)
                     }
                 }, false);
             },
@@ -825,8 +845,7 @@
                 }
             },
             selectBoxBackground(params) {
-                //作为选中盒子的背景
-                console.log(params) 
+                //作为选中盒子的背景 
                 if (!Topo.Selectnode) {
                     //如果没有盒子 
                     var geometry = new THREE.BoxGeometry(12, 12, 12);
@@ -928,7 +947,7 @@
                 })
 
             },
-
+             
             load() {
                 Topo.nexus = {
                     nodes:[],
@@ -940,7 +959,7 @@
                 Topo.initLight()
                 // Topo.initData()
                 Topo.initControls()
-                Topo.initStats()
+                // Topo.initStats()
                 Topo.renders()
                 Topo.postMessage()
                 window.addEventListener("resize", Topo.onWindowResize)
@@ -1053,7 +1072,7 @@
     <canvas id="mainCanvas" width="1600px" height="800px" style="position: absolute;left:0;top: 0;"></canvas>
     <img src="./assets/show.png" alt="" class="topoShow">
     <div class="inputPositiobn">
-        <ul class="NodesPosition" style="height:75px">
+        <ul class="NodesPosition" style="height:0px">
             <img src="./assets/bottom.png" alt="" class="toggle" id="toogle">
             <li>
                 <span class="positionIocn iconX"></span>
@@ -1080,7 +1099,7 @@
             </li> -->
         </ul>
     </div>
-    <div id="stats" style="position:absolute;left:0;top:0;"></div>
+    <!-- <div id="stats" style="position:absolute;left:0;top:0;"></div> -->
 </body>
 
 </html>

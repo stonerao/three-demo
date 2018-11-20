@@ -527,11 +527,7 @@
                         if (data.type == 1) {
                             let src = data.src_ip;
                         }
-                        if (data.src_ip && data.tar_ip) {
-                            console.log({
-                                src: data.src_ip,
-                                dst: data.tar_ip
-                            })
+                        if (data.src_ip && data.tar_ip) { 
                             Topo.attackEvent({
                                 src: data.src_ip,
                                 dst: data.tar_ip

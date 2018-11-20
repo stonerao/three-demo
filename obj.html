@@ -126,9 +126,10 @@
             loadingManager = new THREE.LoadingManager();
             //生成场景
             renderer = new THREE.WebGLRenderer({
-                canvas: document.getElementById('mainCanvas')
+                canvas: document.getElementById('mainCanvas'),
+                alpha:true
             });
-            renderer.setClearColor(0x000f1c, 1.0);
+            renderer.setClearColor(0x000f1c, 0);
             scene = new THREE.Scene();
             //添加相机
             var light = new THREE.AmbientLight(0xcccccc);
