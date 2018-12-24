@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>THREE MAP</title>
+    <script type="text/javascript" src="./lib/three.js"></script>
+    <script type="text/javascript" src="./lib/OrbitControls.js"></script>
+    <script type="text/javascript" src="./lib/MTLLoader.js"></script>
+    <script type="text/javascript" src="./lib/OBJLoader.js"></script>
+    <script type="text/javascript" src="./lib/Stats.js"></script>
+    <script type="text/javascript" src="./lib/tween.min.js"></script>
+    <script type="text/javascript" src="./lib/DragControls.js"></script>
+    <script type="text/javascript" src="./lib/TransformControls.js"></script>
+    <script type="text/javascript" src="./lib/THREE.MeshLine.js"></script>
+    <script type="text/javascript" src="./cons.js"></script>
+    <script src="./public/shenzhen.js"></script>
+    <link rel="stylesheet" href="./public/style.css">
+    <script type="text/javascript" src="./public/map.js"></script>
+</head>
+
+<body>
+<canvas id="canvas"></canvas>
+    <script>
+        var topo = new THREETOPO({
+            id: "#canvas"
+        })
+    </script>
+</body>
+
+</html>

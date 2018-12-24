@@ -839,6 +839,7 @@
             },
             initMap() {
                 //测试绘制 
+                let n = 1000;
                 var material = new THREE.LineBasicMaterial({
                     color: 0xffffff
                 });
@@ -848,10 +849,26 @@
                 mapConfig.features.forEach(fea => {
                     fea.geometry.coordinates.forEach(e => {
                         if (e[0] !== undefined) {
+                            let all = e[0].map(g => {
+                                let a = [g[0] * n, 100, g[1] * n]
+                                arr.push(a)
+                            })
+
+                        }
+                    })
+                })
+                let xArr = arr.map(x => x[0])
+                let zArr = arr.map(z => z[2])
+                //最大值
+                let xmax = Math.max.apply(null, xArr)
+                let zmax = Math.max.apply(null, zArr)
+                mapConfig.features.forEach(fea => {
+                    fea.geometry.coordinates.forEach(e => {
+                        if (e[0] !== undefined) {
                             var geometry = new THREE.Geometry();
                             let all = e[0].map(g => {
-                                let a = [g[0] * 1000, 1, g[1] * 1000]
-                                arr.push(a)
+                                let z = (g[1] * n - Topo.numPing(zArr)) * -1
+                                let a = [g[0] * n - Topo.numPing(xArr), 2, z]
                                 geometry.vertices.push(
                                     new THREE.Vector3(...a)
                                 );
@@ -861,40 +878,46 @@
                             lineArr.push(line)
                         }
                     })
-                }) 
-                let xArr = arr.map(x => x[0])
-                let zArr = arr.map(z => z[2])
-                //最大值
-                let xmax = Math.max.apply(null, xArr)
-                let zmax = Math.max.apply(null, zArr)
-                //最小值
+                })
                 // lineArr.forEach(l => {
-                //     l.position.x -= Topo.numPing(xArr)
-                //     l.position.z -= Topo.numPing(zArr)
+                //     // l.position.x -= Topo.numPing(xArr)
+                //     // l.position.z -= Topo.numPing(zArr)
+                //     l.rotation.z =2 
                 // })
                 lineArr.forEach(l => {
-                    l.position.x -= Topo.numPing(xArr)
-                    l.position.z -= Topo.numPing(zArr)
+                    // l.position.x -= Topo.numPing(xArr)
+                    // l.position.z -= Topo.numPing(zArr)
+                    // l.rotation.y += 0.01
+                    // l.rotation.x = Math.PI;
                 })
                 //坐标定位
-                //113.978366,22.56577 
-                let zbx = 113.962062 * 1000
-                let zbz = 22.579619 * 1000
+                //
+                //113.923662, 22.769082 光明
+                // let zbx = 113.923662 * 1000 - Topo.numPing(xArr)
+                // let zbz = 22.769082 * 1000 - Topo.numPing(zArr)
+                // 114.017379, 22.690263 龙华
+                // let zbx = 114.017379 * n - Topo.numPing(xArr)
+                // let zbz = 22.690263 * n - Topo.numPing(zArr)
+                //  114.142018, 22.575792罗湖 
+                // let zbx = 114.142018 * 1000 - Topo.numPing(xArr)
+                // let zbz = 22.575792 * 1000 - Topo.numPing(zArr)
+                let zbx = 114.483949 * 1000 - Topo.numPing(xArr)
+                let zbz = 22.685307 * 1000 - Topo.numPing(zArr)
                 let zby = 1
                 var geometry = new THREE.CylinderGeometry(5, 5, 20, 32);
                 var material = new THREE.MeshBasicMaterial({
                     color: 0xffff00
                 });
                 var cylinder = new THREE.Mesh(geometry, material);
-                Topo.scene.add(cylinder); 
+                Topo.scene.add(cylinder);
                 let p = xmax - Topo.numPing(xArr)
                 let pz = zmax - Topo.numPing(zArr)
-                cylinder.position.x = (zbx - xmax + p)
-                cylinder.position.z = (zbz - zmax + pz)
+                cylinder.position.x = zbx
+                cylinder.position.z = zbz * -1
                 return false;
                 //绘制地图
             },
-            Conversion() {
+            conversion() {
 
             },
             // initMap() {
