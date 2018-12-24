@@ -11,10 +11,11 @@
     <script type="text/javascript" src="./lib/MTLLoader.js"></script>
     <script type="text/javascript" src="./lib/OBJLoader.js"></script>
     <script type="text/javascript" src="./lib/Stats.js"></script>
-    <script type="text/javascript" src="./lib/tween.min.js"></script>
+    <script type="text/javascript" src="./lib/tween.js"></script>
     <script type="text/javascript" src="./lib/DragControls.js"></script>
     <script type="text/javascript" src="./lib/TransformControls.js"></script>
     <script type="text/javascript" src="./lib/THREE.MeshLine.js"></script>
+<script type="text/javascript" src="./lib/TrailRenderer.js"></script>
     <script type="text/javascript" src="./cons.js"></script>
     <script src="./public/shenzhen.js"></script>
     <link rel="stylesheet" href="./public/style.css">
@@ -22,7 +23,8 @@
 </head>
 
 <body>
-<canvas id="canvas"></canvas>
+    <canvas id="canvas"></canvas>
+    <div id="stats"></div>
     <script>
         var topo = new THREETOPO({
             id: "#canvas"

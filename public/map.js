@@ -49,6 +49,14 @@
         scene.add(ambient);
     }
 
+    function initStats() {
+        //监控帧数
+        stats = new Stats()
+        stats.setMode(0)
+        document.getElementById("stats").innerHTML = ""
+        document.getElementById("stats").appendChild(stats.domElement)
+    }
+
     function initFooter() {
         //加载地板
         let foot = THREE.ImageUtils.loadTexture('./assets/foot.jpg', {}, () => {
@@ -91,7 +99,7 @@
 
     function initMap() {
         //测试绘制 
-        let n = 1000; //倍数
+        let n = 1500; //倍数
         var material = new THREE.LineBasicMaterial({
             color: 0xffffff
         });
@@ -130,45 +138,127 @@
                 }
             })
         })
-        initMap.prototype.conversion = function (x, z) {
+        initMap.prototype.conversion = function (x, z, y = 5) {
             //转换x,z
             let cx = x * n - numPing(xArr)
             let cz = z * n - numPing(zArr)
             return {
                 x: cx,
                 z: cz * -1,
-                y: 25
+                y: y
             }
         }
-        let {
-            x,
-            y,
-            z
-        } = initMap.prototype.conversion(113.962062, 22.579619)
-
 
 
 
 
     }
 
-    function initAttack() { 
+    function initAttack() {
         var material = new THREE.MeshBasicMaterial({
-            color: 0xcf0f00
+            color: 0xcfceca
         });
         mapConfig.features.forEach(x => {
             let value = initMap.prototype.conversion(...x.properties.cp)
-            var geometry = new THREE.CylinderGeometry(1, 1, 50, 10);
+            let h = Math.random() * 180 + 5;
+            var geometry = new THREE.CylinderGeometry(2, 2, h, 10);
             var cylinder = new THREE.Mesh(geometry, material);
             cylinder.position.x = value.x
             cylinder.position.z = value.z
-            cylinder.position.y = value.y
+            cylinder.position.y = value.y + h / 2
             scene.add(cylinder);
         })
-        
+    }
+    let nm = () => Math.random() * 1000
+
+    function intiAnmt() {
+        let attackArr = initMap.prototype.conversion(113.848455, 22.665555, 15)
+        let attackArr1 = initMap.prototype.conversion(113.962062, 22.579619, 15)
+        let trail_geometry = new THREE.Geometry();
+        for (let i = 0; i < 100; i++) {
+            trail_geometry.vertices.push(new THREE.Vector3(attackArr.x, attackArr.y, attackArr.z))
+        }
+        var trail_line = new MeshLine();
+        trail_line.setGeometry(trail_geometry, function (p) {
+            return p;
+        });
+        var resolution = new THREE.Vector2(window.innerWidth, window.innerHeight);
+        var trail_material = new MeshLineMaterial({
+            color: new THREE.Color("rgb(255, 2, 2)"),
+            opacity: 1,
+            resolution: resolution,
+            sizeAttenuation: 1,
+            lineWidth: 10,
+            near: 1,
+            far: 100000,
+            depthTest: false,
+            blending: THREE.AdditiveBlending,
+            transparent: false,
+            side: THREE.DoubleSide
+        });
+        var trail_mesh = new THREE.Mesh(trail_line.geometry, trail_material)
+        trail_mesh.frustumCulled = false;
+        scene.add(trail_mesh);
+        createjs.Tween.get(attackArr).to(attackArr1, 1000).addEventListener("change", handleChange);
+
+        function handleChange(event) {
+            trail_line.advance(new THREE.Vector3(attackArr.x, attackArr.y, attackArr.z));
+            // 这个tween被改变时.
+        }
+        // trail_line.advance(new THREE.Vector3(nm(), nm(), nm()));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        var material = new THREE.MeshBasicMaterial({
+            color: 0xcfceca
+        });
+
+        let value = {x:0,y:110,z:110}
+        let h = Math.random() * 180 + 5;
+        var geometry = new THREE.CylinderGeometry(2, 2, h, 10);
+        var cylinder = new THREE.Mesh(geometry, material);
+        cylinder.position.x = value.x
+        cylinder.position.z = value.z
+        cylinder.position.y = value.y + h / 2
+       
+
+        var trailHeadGeometry = [];
+        trailHeadGeometry.push(
+            new THREE.Vector3(-10.0, 0.0, 0.0),
+            new THREE.Vector3(0.0, 0.0, 0.0),
+            new THREE.Vector3(10.0, 0.0, 0.0)
+        );
+        // create the trail renderer object
+        var trail = new THREE.TrailRenderer(scene, false);
+
+        // create material for the trail renderer
+        var trailMaterial = THREE.TrailRenderer.createBaseMaterial();
+
+        // specify length of trail
+        var trailLength = 150;
+
+        // initialize the trail
+        trail.initialize(trailMaterial, trailLength, false, 0, trailHeadGeometry, cylinder);
+        setInterval(x=>{
+            trail.activate()
+        },100)
+        console.log(trail)
+
     }
 
     function renders() {
+        stats.update()
         renderer.render(scene, camera);
         requestAnimationFrame(renders);
     }
@@ -180,9 +270,11 @@
         initLight();
         initFooter();
         initControls();
-        renders()
+        initStats()
         initMap()
         initAttack()
+        intiAnmt()
+        renders()
     }
     return init
 }))
