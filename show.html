@@ -15,6 +15,7 @@
     <script type="text/javascript" src="./lib/THREE.MeshLine.js"></script>
     <!-- <script type="text/javascript" src="./data.js"></script> -->
     <script type="text/javascript" src="./cons.js"></script>
+    <script src="./public/shenzhen.js"></script>
     <link rel="stylesheet" href="./public/style.css">
 
     <script>
@@ -67,7 +68,7 @@
                 Topo.scene = new THREE.Scene();
                 //相机
                 Topo.camera = new THREE.PerspectiveCamera(Topo.fov, Topo.width / Topo.height, 1, 10000);
-                Topo.camera.position.set(195, 200, 430);
+                Topo.camera.position.set(0, 900, 200);
                 Topo.camera.lookAt(new THREE.Vector3(0, 0, 0));
                 Topo.scene.add(Topo.camera);
 
@@ -112,9 +113,9 @@
                 //是否可以缩放
                 Topo.controls.enableZoom = true;
                 //是否自动旋转 controls.autoRotate = true; 设置相机距离原点的最远距离
-                Topo.controls.minDistance = 20;
+                Topo.controls.minDistance = 30;
                 //设置相机距离原点的最远距离
-                Topo.controls.maxDistance = 900;
+                Topo.controls.maxDistance = 2000;
                 //是否开启右键拖拽
                 Topo.controls.enablePan = true;
             },
@@ -479,9 +480,10 @@
                 }
             },
             activeNode(ip, bl) {
-                let node = Topo.scene.children.filter(x => x.params).filter(x => x.params.type == "node" && x.params.ip ==
+                let node = Topo.scene.children.filter(x => x.params).filter(x => x.params.type == "node" && x.params
+                    .ip ==
                     ip)[0]
-                    console.log(node)
+                console.log(node)
                 var geometry = new THREE.BoxGeometry(12, 12, 12);
                 var material = new THREE.MeshBasicMaterial({
                     color: bl ? 0xff0000 : 0x00ff00,
@@ -527,16 +529,15 @@
                         if (data.type == 1) {
                             let src = data.src_ip;
                         }
-                        if (data.src_ip && data.tar_ip) { 
+                        if (data.src_ip && data.tar_ip) {
                             Topo.attackEvent({
                                 src: data.src_ip,
                                 dst: data.tar_ip
                             })
-                        }
-                        else {
+                        } else {
                             //攻击
-                            Topo.activeNode(data.tar_ip || data.src_ip, true) 
-                        }  
+                            Topo.activeNode(data.tar_ip || data.src_ip, true)
+                        }
                     } else if (type == 2) {
                         Topo.initData(data)
                     }
@@ -829,7 +830,108 @@
                 })
 
             },
+            numPing(arr) {
+                let num = 0;
+                arr.forEach(x => {
+                    num += x;
+                })
+                return num / arr.length
+            },
+            initMap() {
+                //测试绘制 
+                var material = new THREE.LineBasicMaterial({
+                    color: 0xffffff
+                });
+                //解析所有的坐标
+                let arr = [];
+                let lineArr = []
+                mapConfig.features.forEach(fea => {
+                    fea.geometry.coordinates.forEach(e => {
+                        if (e[0] !== undefined) {
+                            var geometry = new THREE.Geometry();
+                            let all = e[0].map(g => {
+                                let a = [g[0] * 1000, 1, g[1] * 1000]
+                                arr.push(a)
+                                geometry.vertices.push(
+                                    new THREE.Vector3(...a)
+                                );
+                            })
+                            var line = new THREE.Line(geometry, material);
+                            Topo.scene.add(line);
+                            lineArr.push(line)
+                        }
+                    })
+                }) 
+                let xArr = arr.map(x => x[0])
+                let zArr = arr.map(z => z[2])
+                //最大值
+                let xmax = Math.max.apply(null, xArr)
+                let zmax = Math.max.apply(null, zArr)
+                //最小值
+                // lineArr.forEach(l => {
+                //     l.position.x -= Topo.numPing(xArr)
+                //     l.position.z -= Topo.numPing(zArr)
+                // })
+                lineArr.forEach(l => {
+                    l.position.x -= Topo.numPing(xArr)
+                    l.position.z -= Topo.numPing(zArr)
+                })
+                //坐标定位
+                //113.978366,22.56577 
+                let zbx = 113.962062 * 1000
+                let zbz = 22.579619 * 1000
+                let zby = 1
+                var geometry = new THREE.CylinderGeometry(5, 5, 20, 32);
+                var material = new THREE.MeshBasicMaterial({
+                    color: 0xffff00
+                });
+                var cylinder = new THREE.Mesh(geometry, material);
+                Topo.scene.add(cylinder); 
+                let p = xmax - Topo.numPing(xArr)
+                let pz = zmax - Topo.numPing(zArr)
+                cylinder.position.x = (zbx - xmax + p)
+                cylinder.position.z = (zbz - zmax + pz)
+                return false;
+                //绘制地图
+            },
+            Conversion() {
 
+            },
+            // initMap() {
+            //     //测试绘制
+            //     console.log(mapConfig);
+            //     var material = new THREE.LineBasicMaterial({
+            //         color: 0xffffff
+            //     });
+            //     //解析所有的坐标
+            //     let arr = []
+            //     var geometry = new THREE.Geometry();
+            //     mapConfig.features.forEach(fea => {
+            //         fea.geometry.coordinates.forEach(e => {
+            //             if (e[0] !== undefined) { 
+            //                 let all = e[0].map(g => {
+            //                     arr.push([g[0] * 1000, 1, g[1] * 1000])
+            //                 }) 
+            //             } 
+            //         })
+            //     })  
+            //     arr.forEach(path => {
+            //         geometry.vertices.push(
+            //             new THREE.Vector3(...path)
+            //         );
+            //     })
+            //     let xArr = arr.map(x => x[0])
+            //     let zArr = arr.map(z => z[2])
+            //     let xmax = Math.max.apply(null, xArr)
+            //     let zmax = Math.max.apply(null, zArr)
+            //     var line = new THREE.Line(geometry, material);
+            //     line.position.x -= Topo.numPing(xArr)
+            //     line.position.z -= Topo.numPing(zArr)
+            //     Topo.scene.add(line);
+            //     console.log(line)
+            //     return false;
+            //     //绘制地图
+            // },
             load() {
                 Topo.nexus = {
                     nodes: [],
@@ -844,6 +946,7 @@
                 // Topo.initStats()
                 Topo.renders()
                 Topo.postMessage()
+                Topo.initMap()
                 window.addEventListener("resize", Topo.onWindowResize)
                 // Topo.raycasterEvent() 
 
